@@ -21,7 +21,7 @@ SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 
 ```{r Matias, include=FALSE}
 #Create baseline model
-Baseline_model_M0 <- lm(demand_gross ~ wind + solar + temp + wdayindex + monthindex, data = scs_data)
+Baseline_model_M0 <- lm(demand_gross ~ wind + solar + temp + wdayindex + monthindex, data = SCS_demand_modelling)
 
 # Display model summary
 summary(Baseline_model_M0)
