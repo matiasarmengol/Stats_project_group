@@ -19,7 +19,15 @@ SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 
 
 ```{r Matias, include=FALSE}
+#Create baseline model
+Baseline_model_M0 <- lm(demand_gross ~ wind + solar + temp + wdayindex + monthindex, data = scs_data)
 
+# Display model summary
+summary(Baseline_model_M0)
+
+#Diagnostic plots
+par(mfrow = c(2, 2))
+plot(model_M0)
 
 ```
 
@@ -29,18 +37,8 @@ SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 ```
 
 ```{r Fergus, include=FALSE}
-#CLEANING - prep for M0
 
-library(dplyr)
 
-#select only involved covariates and output variable
-vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
-selected <- select(SCS_demand_modelling, vars)
-
-selected <- selected |> 
-  filter(complete.cases(selected)) #remove any NAs, there arent any tho
-
-View(selected)
 ```
 
 
