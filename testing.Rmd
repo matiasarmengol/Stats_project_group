@@ -23,7 +23,7 @@ SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 #CLEANING - prep for M0 model
 
 #select only involved covariates and output variable
-vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
+vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
 selected <- select(SCS_demand_modelling, vars)
 
 selected <- selected |> 
@@ -179,7 +179,17 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 ```
 
 ```{r M1, include=FALSE}
-#first attempt at a new model
+#first attempt at a new model - using cos of day and month instead
+
+#initialise M1
+Model_M1 <- lm(Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month, data = selected)
+
+#summarise
+summary(Model_M1)
+
+#diagnostic plots
+
+
 
 
 ```
