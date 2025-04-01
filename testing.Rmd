@@ -175,7 +175,23 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 ```
 
 ```{r Cross-Validation}
+source("code.r")
 
+# Check if the function was properly loaded
+
+if(exists("cross_validation")){
+  cat("Successfully imported cross_validation() function \n")
+} else {
+  cat("Failed to import cross_validation() function \n")
+}
+if(exists("cross_validation")) {
+  cat("✓ Successfully imported cross_validation() function\n")
+} else {
+  cat("❌ Failed to import cunction\n")
+}
+
+M0_res <- cross_validation(Baseline_model_M0, selected)
+print(M0_res)
 ```
 
 ```{r M1, include=FALSE}
