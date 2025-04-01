@@ -175,7 +175,23 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 ```
 
 ```{r Cross-Validation}
+source("code.r")
 
+# Check if the function was properly loaded
+
+if(exists("cross_validation")){
+  cat("Successfully imported cross_validation() function \n")
+} else {
+  cat("Failed to import cross_validation() function \n")
+}
+if(exists("cross_validation")) {
+  cat("✓ Successfully imported cross_validation() function\n")
+} else {
+  cat("❌ Failed to import cunction\n")
+}
+
+M0_res <- cross_validation(Baseline_model_M0, selected)
+print(M0_res)
 ```
 
 ```{r M1, include=FALSE}
@@ -192,6 +208,28 @@ summary(Model_M1)
 #diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M1)
+
+#'
+#'Comments on the results of the diagnostic plots to suggestions for a better
+#'model:
+#'
+#'Residuals vs Fitted:
+#'This plot displays no serious indicators of heteroscedasticity or nonlinear
+#'patterns. I would only obtain minor improvements here.
+#'
+#'Q-Q Residuals:
+#'The observations do fall closely along the diagonal line. At both ends of the
+#'line, the residuals fall beneath it. This suggests that the true distribution
+#'has 'lighter tails' or less likely extremes than our normal assumption.
+#'
+#'Scale-Location:
+#'Again, there is no significant indication that homoscedasticity is violated.
+#'
+#'Residuals vs Leverage:
+#'There are many outliers in our data, or individual observations that are 
+#'having a significant effect on our predicted value. For the next iteration of
+#'the model, we'll clean some of the outliers and compare the R^2 values of the 
+#'resulting model against this one.
 ```
 
 ```{r demand-time models}
