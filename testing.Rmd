@@ -18,11 +18,9 @@ library(reshape2)
 SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 ```
-
+### Clean Data
 ```{r Clean data, include=FALSE}
 #CLEANING - prep for M0 model
-
-library(dplyr)
 
 #select only involved covariates and output variable
 vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
@@ -50,7 +48,7 @@ par(mfrow = c(2, 2))
 plot(Baseline_model_M0)
 
 ```
-
+### Correlation Plots
 ```{r Correlation-plots, include=FALSE}
 
 numeric_vars <- SCS_demand_modelling %>%
