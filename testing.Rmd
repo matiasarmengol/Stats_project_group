@@ -23,7 +23,7 @@ SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 #CLEANING - prep for M0 model
 
 #select only involved covariates and output variable
-vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
+vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
 selected <- select(SCS_demand_modelling, vars)
 
 selected <- selected |> 
@@ -195,9 +195,19 @@ print(M0_res)
 ```
 
 ```{r M1, include=FALSE}
-#first attempt at a new model
+#first attempt at a new model - using cos of day and month instead. We expect 
+#a cyclic relationship as the year progresses so we use the cosine of our time
+#variables here to see if it better fits the data.
 
+#initialise M1
+Model_M1 <- lm(Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month, data = selected)
 
+#summarise
+summary(Model_M1)
+
+#diagnostic plots
+par(mfrow = c(2,2))
+plot(Model_M1)
 ```
 
 ```{r demand-time models}
