@@ -8,6 +8,9 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(readr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
 
 ```
 
@@ -17,8 +20,23 @@ SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 ```
 
+```{r Clean data, include=FALSE}
+#CLEANING - prep for M0 model
 
-```{r Matias, include=FALSE}
+library(dplyr)
+
+#select only involved covariates and output variable
+vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
+selected <- select(SCS_demand_modelling, vars)
+
+selected <- selected |> 
+  filter(complete.cases(selected)) #remove any NAs, there arent any tho
+
+View(selected)
+
+```
+
+```{r Baseline-model, include=FALSE}
 #Create baseline model
 Baseline_model_M0 <- lm(Y ~ Wind + Solar + Temp + Day_Index + Month_Index, data = selected)
 
@@ -31,11 +49,8 @@ plot(Baseline_model_M0)
 
 ```
 
-```{r Adi, include=FALSE}
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(reshape2)
+```{r Correlation-plots, include=FALSE}
+
 numeric_vars <- SCS_demand_modelling %>%
   select(-1, -Date)
 
@@ -97,25 +112,9 @@ ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
   theme_minimal() +
   labs(title = "Relationship Between Temperature and Demand",
        x = "Temperature", y = "Gross Demand")
-
-
 ```
 
-```{r Fergus, include=FALSE}
-#CLEANING - prep for M0 model
 
-library(dplyr)
-
-#select only involved covariates and output variable
-vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
-selected <- select(SCS_demand_modelling, vars)
-
-selected <- selected |> 
-  filter(complete.cases(selected)) #remove any NAs, there arent any tho
-
-View(selected)
-
-```
 
 ```{r Fergus_attemptingtodoM0, include=FALSE}
 
