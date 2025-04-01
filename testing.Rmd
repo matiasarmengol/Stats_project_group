@@ -29,7 +29,7 @@ SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 ```
 
 ```{r Fergus, include=FALSE}
-#CLEANING - prep for M0
+#CLEANING - prep for M0 model
 
 library(dplyr)
 
