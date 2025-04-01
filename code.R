@@ -44,6 +44,8 @@ cross_validation <-function(lm, data,
     return(results)
   }
   
+  #Initialize results
+  results <- list()
   
   # Get unique groups
   unique_groups <- unique(data$group)
@@ -66,11 +68,11 @@ cross_validation <-function(lm, data,
     
     # Refit model on training data
     tryCatch({
-      cv_model <- update(model, data = train_data)
+      cv_model <- update(lm, data = train_data)
       
       # Predict on test data
       predictions <- predict(cv_model, newdata = test_data)
-      actuals <- test_data[[target_var]]
+      actuals <- test_data[["Y"]]
       
       # Store predictions for overall metrics
       overall_actuals <- c(overall_actuals, actuals)
