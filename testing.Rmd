@@ -174,7 +174,9 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 
 ```
 
+```{r Cross-Validation}
 
+```
 
 ```{r M1, include=FALSE}
 #first attempt at a new model
