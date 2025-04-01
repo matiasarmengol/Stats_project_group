@@ -192,6 +192,19 @@ summary(Model_M1)
 #diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M1)
+
+#'
+#'Comments on the results of the diagnostic plots to suggestions for a better
+#'model:
+#'
+#'Residuals vs Fitted:
+#'This plot displays no serious indicators of heteroscedasticity or nonlinear
+#'patterns. I would only obtain minor improvements here.
+#'
+#'Q-Q Residuals:
+#'The observations do fall closely along the diagonal line. At both ends of the
+#'line, the residuals fall beneath it. This suggests that the true distribution
+#'has 'lighter tails' or less likely extremes than our normal assumption.
 ```
 
 ```{r demand-time models}
