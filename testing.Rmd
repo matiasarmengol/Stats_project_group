@@ -46,11 +46,9 @@ summary(Baseline_model_M0)
 #Diagnostic plots
 par(mfrow = c(2, 2))
 plot(Baseline_model_M0)
-
 ```
 ### Correlation Plots
 ```{r Correlation-plots, include=FALSE}
-
 numeric_vars <- SCS_demand_modelling %>%
   select(-1, -Date)
 
@@ -171,7 +169,6 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
   theme_minimal() +
   labs(title = "Demand vs Day of Week (Cosine)",
        x = "Day of Week (cos transform)", y = "Gross Demand")
-
 ```
 
 ```{r Cross-Validation}
@@ -184,13 +181,8 @@ if(exists("cross_validation")){
 } else {
   cat("Failed to import cross_validation() function \n")
 }
-if(exists("cross_validation")) {
-  cat("✓ Successfully imported cross_validation() function\n")
-} else {
-  cat("❌ Failed to import cunction\n")
-}
 
-M0_res <- cross_validation(Baseline_model_M0, selected)
+M0_res <- cross_validation(Baseline_model_M0, selected, grouping="Month")
 print(M0_res)
 ```
 

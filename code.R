@@ -7,13 +7,19 @@
 #' @param data dataset containing all the variables used in the model
 #' 
 cross_validation <-function(lm, data,
-                            date_var = "Date"){
+                            date_var = "Date",
+                            grouping = "Monthly",
+                            metrics = c("rmse", "mae", "mape", "r2")){
   ## Validation of inputs
   if (!inherits(lm, "lm")){
     stop("Model must be a linear model (lm) object")
   }
   if (!date_var %in% names(data)) {
     stop(paste("Date variable", date_var, "not found in data"))
+  }
+  valid_metrics <- c("rmse", "mae", "mape", "r2")
+  if (!all(metrics %in% valid_metrics)) {
+    stop(paste("Invalid metrics. Valid options are:", paste(valid_metrics, collapse = ", ")))
   }
   
   ## Check date variable is as a date format
@@ -22,8 +28,18 @@ cross_validation <-function(lm, data,
   }
   
   ## Group by month
-  data$group <- factor(month(data[[date_var]]), levels = 1:12,
-                       labels = month.name)
+  if (grouping == "Month"){
+    data$group <- factor(month(data[[date_var]]), levels = 1:12,
+                         labels = month.name)
+  } else if (grouping == "Weekend"){
+    data$group <- factor(
+      ifelse(wday(data[[date_var]]) %in% c(1, 7), "Weekend", "Weekday"),
+      levels = c("Weekday", "Weekend")
+    )
+  } else{
+    stop(paste("Invalid grouping. Valid options are: Month, Weekend"))
+  }
+  
   
   # Get model formula and variables
   model_formula <- formula(lm)
@@ -33,11 +49,27 @@ cross_validation <-function(lm, data,
   calculate_metrics <- function(actual, predicted){
     results <- list()
     
-    valid_indices <- !is.na(actual) & !is.na(predicted) & actual != 0
-    actual_valid <- actual[valid_indices]
-    predicted_valid <- predicted[valid_indices]
+    if ("rmse" %in% metrics) {
+      results$rmse <- sqrt(mean((actual - predicted)^2, na.rm = TRUE))
+    }
     
-    results$rmse <- sqrt(mean((actual-predicted)^2, na.rm= TRUE))
+    if ("mae" %in% metrics) {
+      results$mae <- mean(abs(actual - predicted), na.rm = TRUE)
+    }
+    
+    if ("mape" %in% metrics) {
+      results$mape <- 100 * mean(abs((actual - predicted) / actual), na.rm = TRUE)
+    }
+    
+    if ("r2" %in% metrics) {
+      if (var(actual, na.rm = TRUE) > 0) {
+        ss_total <- sum((actual - mean(actual))^2)
+        ss_residual <- sum((actual - predicted)^2)
+        results$r2 <- 1 - (ss_residual / ss_total)
+      } else {
+        results$r2 <- NA
+      }
+    }
     
     results$n <- sum(!is.na(actual) & !is.na(predicted))
     
@@ -86,7 +118,6 @@ cross_validation <-function(lm, data,
       warning(paste("Error in cross-validation for group:", grp, "-", e$message))
     })
   }
-  
   # Calculate overall metrics
   overall_metrics <- calculate_metrics(overall_actuals, overall_predictions)
   
@@ -95,5 +126,16 @@ cross_validation <-function(lm, data,
   results$overall_metrics <- overall_metrics
   results$group_by <- group_by
   
-  return(results)
+  # Create summary data frame for easy viewing
+  metrics_df <- data.frame(
+    Group = names(group_results),
+    N = sapply(group_results, function(x) x$n)
+  )
+  
+  for (m in metrics) {
+    metrics_df[[toupper(m)]] <- sapply(group_results, function(x) x[[m]])
+  }
+  
+  
+  return(metrics_df)
 }
