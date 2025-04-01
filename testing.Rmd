@@ -195,7 +195,41 @@ plot(Model_M1)
 ```
 
 ```{r demand-time models}
+# Convert Date column to Date format
+SCS_demand_modelling <- SCS_demand_modelling %>%
+  mutate(Date = as.Date(Date, format="%Y-%m-%d"))
 
+# First Plot: Daily Gross Demand vs. Date
+ggplot(SCS_demand_modelling, aes(x = Date, y = `demand_gross`)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Daily Gross Demand vs. Date",
+       x = "Date", y = "Gross Demand (MW)") +
+  theme_minimal()
+
+# Aggregate data for monthly average
+demand_monthly <- SCS_demand_modelling %>%
+  group_by(year, monthindex) %>%
+  summarise(avg_demand = mean(`demand_gross`, na.rm = TRUE)) %>%
+  mutate(month = as.Date(paste(year, monthindex + 1, "01", sep = "-")))
+
+# Second Plot: Monthly Average Gross Demand vs. Month
+ggplot(demand_monthly, aes(x = month, y = avg_demand)) +
+  geom_point(color = "blue") +
+  labs(title = "Monthly Average Gross Demand vs. Month",
+       x = "Month", y = "Average Gross Demand (MW)") +
+  theme_minimal()
+
+# Aggregate data for yearly average
+demand_yearly <- SCS_demand_modelling %>%
+  group_by(year) %>%
+  summarise(avg_demand = mean(`demand_gross`, na.rm = TRUE))
+
+# Third Plot: Yearly Average Gross Demand vs. Year
+ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
+  geom_point(color = "red") +
+  labs(title = "Yearly Average Gross Demand vs. Year",
+       x = "Year", y = "Average Gross Demand (MW)") +
+  theme_minimal()
 ```
 
 
