@@ -16,3 +16,21 @@ SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 
 ```
+
+
+```{r cell1, include=FALSE}
+
+
+```
+
+```{r cell2, include=FALSE}
+
+
+```
+
+```{r cell3, include=FALSE}
+
+
+```
+
+
