@@ -11,7 +11,6 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 library(reshape2)
-
 ```
 
 ### Import Dataset
@@ -112,6 +111,66 @@ ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
   theme_minimal() +
   labs(title = "Relationship Between Temperature and Demand",
        x = "Temperature", y = "Gross Demand")
+
+# Reset plot layout
+par(mfrow = c(1, 1))
+
+# Add sine and cosine transformations for cyclic temporal features
+# For month of the year (periods of 12 months)
+demand_data <- SCS_demand_modelling %>%
+  mutate(
+    month_sin = sin(2 * pi * monthindex / 12),
+    month_cos = cos(2 * pi * monthindex / 12),
+    wday_sin = sin(2 * pi * wdayindex / 7),
+    wday_cos = cos(2 * pi * wdayindex / 7)
+  )
+
+# Recompute correlation matrix with new cyclic features
+numeric_vars_with_cyclic <- demand_data %>%
+  select(-1, -Date)
+
+cor_matrix_cyclic <- cor(numeric_vars_with_cyclic, use = "pairwise.complete.obs")
+
+# Create a more readable table with rounded values
+cor_table_cyclic <- round(cor_matrix_cyclic, 3)
+print(cor_table_cyclic)
+
+# Plot correlations of cyclic features with demand
+cyclic_vars <- c("month_sin", "month_cos", "wday_sin", "wday_cos")
+cyclic_cors <- cor_matrix_cyclic[cyclic_vars, "demand_gross"]
+print("Correlations of cyclic features with demand_gross:")
+print(cyclic_cors)
+
+# Visualize monthly patterns with sine/cosine transformation
+p1 <- ggplot(demand_data, aes(x = month_sin, y = demand_gross)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess", color = "red") +
+  theme_minimal() +
+  labs(title = "Demand vs Month (Sine)",
+       x = "Month (sin transform)", y = "Gross Demand")
+
+p2 <- ggplot(demand_data, aes(x = month_cos, y = demand_gross)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess", color = "blue") +
+  theme_minimal() +
+  labs(title = "Demand vs Month (Cosine)",
+       x = "Month (cos transform)", y = "Gross Demand")
+
+# Visualize day of week patterns with sine/cosine transformation
+p3 <- ggplot(demand_data, aes(x = wday_sin, y = demand_gross)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess", color = "red") +
+  theme_minimal() +
+  labs(title = "Demand vs Day of Week (Sine)",
+       x = "Day of Week (sin transform)", y = "Gross Demand")
+
+p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess", color = "blue") +
+  theme_minimal() +
+  labs(title = "Demand vs Day of Week (Cosine)",
+       x = "Day of Week (cos transform)", y = "Gross Demand")
+
 ```
 
 
