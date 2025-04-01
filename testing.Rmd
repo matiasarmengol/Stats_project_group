@@ -116,8 +116,9 @@ ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
 
 
 
-```{r Fergus_attemptingtodoM0, include=FALSE}
-#trying to do the M0 or at least just run it
+```{r M1, include=FALSE}
+#first attempt at a new model
+
 
 ```
 
