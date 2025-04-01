@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(readr)
+
 ```
 
 ### Import Dataset
@@ -24,6 +25,71 @@ SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
 ```
 
 ```{r Adi, include=FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+numeric_vars <- SCS_demand_modelling %>%
+  select(-1, -Date)
+
+#Correlation matrix
+cor_matrix <- cor(numeric_vars, use = "pairwise.complete.obs")
+
+# Create a more readable table with rounded values
+cor_table <- round(cor_matrix, 3)
+print(cor_table)
+
+# Reshape the correlation matrix for ggplot
+cor_data <- melt(cor_matrix)
+
+# Create heatmap with ggplot2
+heatmap <- ggplot(data = cor_data, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                        midpoint = 0, limit = c(-1,1), name = "Correlation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  coord_fixed() +
+  geom_text(aes(label = round(value, 2)), size = 3) +
+  labs(title = "Correlation Matrix for Demand Variables",
+       x = "", y = "")
+print(heatmap)
+
+#Specific correlations for gross demand
+demand_correlations <- cor_matrix[, "demand_gross"]
+demand_correlations <- sort(demand_correlations, decreasing = TRUE)
+print(demand_correlations)
+
+# Reset plot layout
+par(mfrow = c(1, 1))
+
+# Monthly patterns in demand
+SCS_demand_modelling %>%
+  group_by(monthindex) %>%
+  summarize(avg_demand = mean(demand_gross, na.rm = TRUE)) %>%
+  ggplot(aes(x = monthindex, y = avg_demand)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Average Demand by Month",
+       x = "Month Index", y = "Average Demand")
+
+# Day of week patterns in demand
+SCS_demand_modelling %>%
+  group_by(wdayindex) %>%
+  summarize(avg_demand = mean(demand_gross, na.rm = TRUE)) %>%
+  ggplot(aes(x = wdayindex, y = avg_demand)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Average Demand by Day of Week",
+       x = "Day of Week Index", y = "Average Demand")
+
+# Relationship between temperature and demand
+ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess", color = "red") +
+  theme_minimal() +
+  labs(title = "Relationship Between Temperature and Demand",
+       x = "Temperature", y = "Gross Demand")
 
 
 ```
