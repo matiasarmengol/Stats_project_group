@@ -103,11 +103,18 @@ ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
 ```
 
 ```{r Fergus, include=FALSE}
-<<<<<<< HEAD
-=======
 #CLEANING - prep for M0 model
->>>>>>> c29d8a481a413a9dfd541b5b1ee7e0ac19083d60
 
+library(dplyr)
+
+#select only involved covariates and output variable
+vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
+selected <- select(SCS_demand_modelling, vars)
+
+selected <- selected |> 
+  filter(complete.cases(selected)) #remove any NAs, there arent any tho
+
+View(selected)
 
 ```
 
