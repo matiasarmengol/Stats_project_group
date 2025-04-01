@@ -29,7 +29,10 @@ vars <- c('Y'='demand_gross', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', '
 selected <- select(SCS_demand_modelling, vars)
 
 selected <- selected |> 
-  filter(complete.cases(selected)) #remove any NAs, there arent any tho
+  #remove any NAs, there arent any tho
+  filter(complete.cases(selected)) |> 
+  mutate("Cos_Day" = cos(Day_Index)) |> 
+  mutate("Cos_Month" = cos(Month_Index))
 
 View(selected)
 
