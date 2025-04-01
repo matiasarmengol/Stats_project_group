@@ -1,0 +1,71 @@
+---
+title: "Modelling Peak Electricity Demand in Great Britain"
+author: "Group number, names of group members along with University usernames"
+output:
+  html_document:
+    number_sections: no
+  pdf_document:
+    number_sections: no
+header-includes:
+  - \newcommand{\bm}[1]{\boldsymbol{#1}}
+  - \newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+---
+
+```{r setup, include = FALSE}
+# Modify this setup code chunk to set options
+# or add extra packages etc if needed.
+# See the project instructions for more details
+# on what code to show, and where/how.
+
+# Set default code chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = TRUE
+)
+
+suppressPackageStartupMessages(library(tidyverse))
+theme_set(theme_bw())
+
+# To give the same random number sequence every time the document is knited,
+# making it easier to discuss the specific numbers in the text:
+set.seed(12345L)
+```
+
+```{r code=readLines("code.R"), eval=TRUE, echo=FALSE}
+# Do not change this code chunk
+# Load function definitions
+source("code.R")
+```
+
+
+# Introduction
+
+This section provides a brief introduction to the task and the datasets used. The introduction is intended to be understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
+
+# Data description and exploratory analysis
+
+Emphasis should be placed on the data features that are relevant for the subsequent modeling. Include visualizations that help illustrate key patterns or relationships. All plots must also be described in the write up. Think carefully about whether each plot needs to be included in your final draft. Your report should include figures and tables but they should be as focused and impactful as possible.
+
+Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
+
+# Model fitting and cross-validation results
+
+In this section you should detail your choice of model and describe the process used to refine and fit the model. You are encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions of these models beyond why they were rejected. This section should mention the methods explored and why they were rejected, but most of your effort should go into describing the model you are using and your process for tuning and validating it.
+
+Provide implementation details and include results from cross-validation or other model evaluation techniques, highlighting improvements and any trade-offs.
+
+
+# Conslusion
+
+Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or assumptions that should be considered when applying the model in practice.
+
+Emphasize how your model can support NESO's long-term planning goals. If the model underperforms in some respects, provide a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound reasoning and transparency will be valued more than overclaiming results.
+
+# Code Appendix
+
+Include here all the code used in your analysis. Ensure that the code is well-commented so it is easy to follow and reuse.
+
+```{r code=readLines("code.R"), eval=FALSE, echo=TRUE}
+# Do not change this code chunk
+```
+
