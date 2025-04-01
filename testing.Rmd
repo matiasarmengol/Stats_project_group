@@ -15,20 +15,19 @@ library(readr)
 ```{r import_data, include=FALSE}
 SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
-
 ```
 
 
 ```{r Matias, include=FALSE}
 #Create baseline model
-Baseline_model_M0 <- lm(demand_gross ~ wind + solar + temp + wdayindex + monthindex, data = SCS_demand_modelling)
+Baseline_model_M0 <- lm(Y ~ Wind + Solar + Temp + Day_Index + Month_Index, data = selected)
 
 # Display model summary
 summary(Baseline_model_M0)
 
 #Diagnostic plots
 par(mfrow = c(2, 2))
-plot(model_M0)
+plot(Baseline_model_M0)
 
 ```
 
