@@ -221,6 +221,15 @@ plot(Model_M1)
 #'The observations do fall closely along the diagonal line. At both ends of the
 #'line, the residuals fall beneath it. This suggests that the true distribution
 #'has 'lighter tails' or less likely extremes than our normal assumption.
+#'
+#'Scale-Location:
+#'Again, there is no significant indication that homoscedasticity is violated.
+#'
+#'Residuals vs Leverage:
+#'There are many outliers in our data, or individual observations that are 
+#'having a significant effect on our predicted value. For the next iteration of
+#'the model, we'll clean some of the outliers and compare the R^2 values of the 
+#'resulting model against this one.
 ```
 
 ```{r demand-time models}
