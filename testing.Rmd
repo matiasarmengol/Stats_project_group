@@ -179,7 +179,9 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 ```
 
 ```{r M1, include=FALSE}
-#first attempt at a new model - using cos of day and month instead
+#first attempt at a new model - using cos of day and month instead. We expect 
+#a cyclic relationship as the year progresses so we use the cosine of our time
+#variables here to see if it better fits the data.
 
 #initialise M1
 Model_M1 <- lm(Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month, data = selected)
@@ -188,10 +190,8 @@ Model_M1 <- lm(Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month, data = selected)
 summary(Model_M1)
 
 #diagnostic plots
-
-
-
-
+par(mfrow = c(2,2))
+plot(Model_M1)
 ```
 
 ```{r demand-time models}
