@@ -266,6 +266,11 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 ```
 ```{r model2, include=FALSE}
 # attempt a new type of model M2, score to beat is R^2 = 0.29 on M1
+# which was just M0 but with cosine of day and month 
+
+#create faceted plot of each covariate against Y to identify nonlinear 
+#relationships
+
 
 
 ```
