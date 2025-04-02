@@ -325,6 +325,7 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
 ```
 
 ```{r model3}
+
 Model_M3 <- lm(Y ~ Solar + week_type + season + Temp + year, data = selected)
 
 #summarize
@@ -333,6 +334,10 @@ summary(Model_M3)
 #diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M3)
+
+M3_res <- cross_validation(Model_M3, selected, grouping="Month")
+print(M3_res)
+
 ```
 
 ```{r model-val}
