@@ -186,7 +186,7 @@ if(exists("cross_validation")){
   cat("Failed to import cross_validation() function \n")
 }
 
-M0_res <- cross_validation(Baseline_model_M0, selected, grouping="Month")
+M0_res <- cross_validation(Baseline_model_M0, selected, grouping="Weekend")
 print(M0_res)
 ```
 
