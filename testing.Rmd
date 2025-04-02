@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(reshape2)
 ```
@@ -284,6 +285,16 @@ new_set <- SCS_demand_modelling |>
 
 #View(new_set)
 
+other_vars = names(new_set)[names(new_set) != "Y"]
+
+new_set_long <- new_set |> 
+  pivot_longer(cols = all_of(other_vars), names_to = "variable", values_to = "value")
+
+ggplot(new_set_long, aes(x = value, y = Y)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap( ~ variable, scales = "free_x") +
+  theme_minimal()
 
 ```
 
