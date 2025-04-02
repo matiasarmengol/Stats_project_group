@@ -64,7 +64,7 @@ cross_validation <-function(lm, data,
     if ("r2" %in% metrics) {
       if (var(actual, na.rm = TRUE) > 0) {
         ss_total <- sum((actual - mean(actual))^2)
-        ss_residual <- sum((actual - predicted)^2)
+        ss_residual <- sum((actual - predicted)^2) 
         results$r2 <- 1 - (ss_residual / ss_total)
       } else {
         results$r2 <- NA
