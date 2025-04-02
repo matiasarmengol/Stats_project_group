@@ -174,7 +174,7 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
   labs(title = "Demand vs Day of Week (Cosine)",
        x = "Day of Week (cos transform)", y = "Gross Demand")
 ```
-
+### Cross Validation
 ```{r Cross-Validation}
 source("code.r")
 
