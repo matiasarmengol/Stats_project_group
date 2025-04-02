@@ -1,0 +1,394 @@
+---
+title: "Only Claude"
+author: "Adithya Kumar"
+date: "2025-04-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r claude-stuff}
+# Load necessary libraries
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+# Read the datasets
+demand_data <- read.csv("Project02/SCS_demand_modelling.csv")
+temp_data <- read.csv("Project02/SCS_hourly_temp.csv")
+
+# Ensure Date is in the correct format
+demand_data$Date <- as.Date(demand_data$Date)
+
+# Parse the temperature data 
+# The temperature data is in DD/MM/YYYY HH:MM format
+temp_data$DateHour <- as.POSIXct(temp_data$Date, format="%d/%m/%Y %H:%M")
+temp_data$Date <- as.Date(temp_data$DateHour)
+
+# Create daily temperature statistics
+daily_temp_stats <- temp_data %>%
+  group_by(Date) %>%
+  summarize(
+    temp_daily_avg = mean(temp, na.rm = TRUE),
+    temp_daily_var = var(temp, na.rm = TRUE),
+    temp_readings = n()
+  )
+
+# Create categorical variables
+demand_data <- demand_data %>%
+  # Add weekend/weekday indicator
+  mutate(
+    is_weekend = as.factor(ifelse(wday(Date) %in% c(1, 7), "Weekend", "Weekday")),
+    
+    # Add season 
+    season = as.factor(case_when(
+      month(Date) %in% c(12, 1, 2) ~ "Winter",
+      month(Date) %in% c(3, 4, 5) ~ "Spring",  
+      month(Date) %in% c(6, 7, 8) ~ "Summer",
+      TRUE ~ "Fall"
+    )),
+    
+    # Ensure year is a factor for the year effect
+    year_factor = as.factor(year)
+  )
+
+# Merge with daily temperature stats
+demand_data <- demand_data %>%
+  left_join(daily_temp_stats, by = "Date")
+
+# Check for missing values
+missing_values <- colSums(is.na(demand_data))
+print("Missing values in each column:")
+print(missing_values)
+
+# Fit linear model with year effects
+model <- lm(demand_gross ~ 
+              is_weekend + 
+              temp + 
+              temp_daily_avg + 
+              temp_daily_var + 
+              wind + 
+              solar_S + 
+              season + 
+              year_factor, 
+            data = demand_data)
+
+# Display model summary
+summary_model <- summary(model)
+print(summary_model)
+
+# Extract and visualize the year effects
+year_coefficients <- coef(model)[grep("year_factor", names(coef(model)))]
+years <- as.numeric(gsub("year_factor", "", names(year_coefficients)))
+
+year_effects <- data.frame(
+  Year = years,
+  Effect = as.numeric(year_coefficients)
+)
+
+# Create a visualization of year effects
+ggplot(year_effects, aes(x = Year, y = Effect)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+  labs(
+    title = "Year Effects on Gross Demand",
+    subtitle = "Relative to the reference year",
+    x = "Year",
+    y = "Effect on Demand (units)"
+  )
+
+# Calculate partial effects of each variable
+# Analyze the impact of temperature
+temp_effect <- data.frame(
+  Temperature = seq(min(demand_data$temp, na.rm = TRUE), 
+                  max(demand_data$temp, na.rm = TRUE), 
+                  length.out = 100)
+)
+temp_effect$Effect <- predict(model, 
+                            newdata = data.frame(
+                              temp = temp_effect$Temperature,
+                              is_weekend = "Weekday",
+                              temp_daily_avg = mean(demand_data$temp_daily_avg, na.rm = TRUE),
+                              temp_daily_var = mean(demand_data$temp_daily_var, na.rm = TRUE),
+                              wind = mean(demand_data$wind, na.rm = TRUE),
+                              solar_S = mean(demand_data$solar_S, na.rm = TRUE),
+                              season = "Winter",
+                              year_factor = "2000"
+                            ))
+
+# Visualize temperature effect
+ggplot(temp_effect, aes(x = Temperature, y = Effect)) +
+  geom_line() +
+  theme_minimal() +
+  labs(
+    title = "Effect of Temperature on Gross Demand",
+    x = "Temperature (C)",
+    y = "Predicted Demand"
+  )
+
+# Compare weekend vs weekday
+weekend_effect <- aggregate(demand_gross ~ is_weekend, data = demand_data, mean)
+print("Average demand by weekday/weekend:")
+print(weekend_effect)
+
+# Compare seasons
+season_effect <- aggregate(demand_gross ~ season, data = demand_data, mean)
+print("Average demand by season:")
+print(season_effect)
+
+# Model diagnostics
+par(mfrow = c(2, 2))
+plot(model)
+
+# Additional model performance metrics
+print("Model performance metrics:")
+print(paste("R-squared:", summary_model$r.squared))
+print(paste("Adjusted R-squared:", summary_model$adj.r.squared))
+print(paste("F-statistic:", summary_model$fstatistic[1]))
+```
+
+
+```{r cross-validation}
+# Load necessary libraries
+library(dplyr)
+library(lubridate)
+
+# Modify the cross_validation function to handle new factor levels
+# Create a version that handles new factor levels in the test set
+cross_validation_robust <- function(lm, data, date_var = "Date", 
+                                   grouping = "Monthly", 
+                                   metrics = c("rmse", "mae", "mape", "r2", "adj_r2")) {
+  # Store the original data
+  original_data <- data
+  
+  # Get factor variables in the model
+  factor_vars <- names(which(sapply(data, is.factor)))
+  
+  # Run the cross-validation with error handling for each group
+  if (grouping == "Month") {
+    data$group <- factor(month(data[[date_var]]), levels = 1:12,
+                         labels = month.name)
+  } else if (grouping == "Weekend") {
+    data$group <- factor(
+      ifelse(wday(data[[date_var]]) %in% c(1, 7), "Weekend", "Weekday"),
+      levels = c("Weekday", "Weekend")
+    )
+  } else {
+    stop(paste("Invalid grouping. Valid options are: Month, Weekend"))
+  }
+  
+  # Get unique groups
+  unique_groups <- unique(data$group)
+  
+  # Initialize results
+  group_results <- list()
+  overall_actuals <- c()
+  overall_predictions <- c()
+  
+  # Extract response variable name
+  response_var <- all.vars(formula(lm))[1]
+  
+  # Helper function to get number of predictors from a model
+  get_num_predictors <- function(model) {
+    total_coeffs <- length(coef(model))
+    has_intercept <- any(names(coef(model)) == "(Intercept)")
+    num_predictors <- if (has_intercept) total_coeffs - 1 else total_coeffs
+    return(num_predictors)
+  }
+  
+  # Function to calculate metrics
+  calculate_metrics <- function(actual, predicted, model = NULL) {
+    results <- list()
+    
+    # Get sample size (excluding NA values)
+    n <- sum(!is.na(actual) & !is.na(predicted))
+    results$n <- n
+    
+    if (n > 0) {
+      if ("rmse" %in% metrics) {
+        results$rmse <- sqrt(mean((actual - predicted)^2, na.rm = TRUE))
+      }
+      
+      if ("mae" %in% metrics) {
+        results$mae <- mean(abs(actual - predicted), na.rm = TRUE)
+      }
+      
+      if ("mape" %in% metrics) {
+        results$mape <- 100 * mean(abs((actual - predicted) / actual), na.rm = TRUE)
+      }
+      
+      if ("r2" %in% metrics || "adj_r2" %in% metrics) {
+        # Calculate R-squared
+        if (var(actual, na.rm = TRUE) > 0) {
+          mean_actual <- mean(actual, na.rm = TRUE)
+          ss_total <- sum((actual - mean_actual)^2, na.rm = TRUE)
+          ss_residual <- sum((actual - predicted)^2, na.rm = TRUE)
+          r2 <- 1 - (ss_residual / ss_total)
+          
+          if ("r2" %in% metrics) {
+            results$r2 <- r2
+          }
+          
+          # Calculate adjusted R-squared
+          if ("adj_r2" %in% metrics && !is.null(model)) {
+            num_predictors <- get_num_predictors(model)
+            if (n > num_predictors + 1) {
+              adj_r2 <- 1 - ((1 - r2) * (n - 1) / (n - num_predictors - 1))
+              results$adj_r2 <- adj_r2
+            } else {
+              results$adj_r2 <- NA
+            }
+          } else if ("adj_r2" %in% metrics) {
+            results$adj_r2 <- NA
+          }
+        } else {
+          if ("r2" %in% metrics) results$r2 <- NA
+          if ("adj_r2" %in% metrics) results$adj_r2 <- NA
+        }
+      }
+    } else {
+      # Handle case with no valid data points
+      for (m in metrics) {
+        results[[m]] <- NA
+      }
+    }
+    
+    return(results)
+  }
+  
+  # Cross-validation by group
+  for (grp in unique_groups) {
+    # Split data
+    train_data <- data[data$group != grp, ]
+    test_data <- data[data$group == grp, ]
+    
+    # Check data size
+    if (nrow(train_data) < 10 || nrow(test_data) < 5) {
+      warning(paste("Insufficient data for group:", grp))
+      next
+    }
+    
+    tryCatch({
+      # Create a new model that drops problematic factor variables
+      # We'll use a simplified model for prediction
+      model_formula <- formula(lm)
+      
+      # Remove factor variables that might cause issues
+      vars_to_remove <- c()
+      if (grouping == "Month") {
+        # If cross-validating by month, remove season (highly collinear with month)
+        if ("season" %in% factor_vars) {
+          vars_to_remove <- c(vars_to_remove, "season")
+        }
+      } else if (grouping == "Weekend") {
+        # If cross-validating by weekend, remove is_weekend
+        if ("is_weekend" %in% factor_vars) {
+          vars_to_remove <- c(vars_to_remove, "is_weekend")
+        }
+      }
+      
+      # Remove problematic variables from formula
+      if (length(vars_to_remove) > 0) {
+        for (var in vars_to_remove) {
+          model_formula <- update(model_formula, paste0(". ~ . - ", var))
+        }
+      }
+      
+      # Fit model on training data with modified formula
+      cv_model <- lm(model_formula, data = train_data)
+      
+      # Predict on test data
+      predictions <- predict(cv_model, newdata = test_data)
+      actuals <- test_data[[response_var]]
+      
+      # Store results
+      overall_actuals <- c(overall_actuals, actuals)
+      overall_predictions <- c(overall_predictions, predictions)
+      
+      # Calculate metrics
+      group_metrics <- calculate_metrics(actuals, predictions, model = cv_model)
+      group_results[[as.character(grp)]] <- group_metrics
+      
+    }, error = function(e) {
+      warning(paste("Error in cross-validation for group:", grp, "-", e$message))
+    })
+  }
+  
+  # Calculate overall metrics
+  overall_metrics <- calculate_metrics(overall_actuals, overall_predictions, model = lm)
+  
+  # Create summary data frame
+  metrics_df <- data.frame(
+    Group = names(group_results),
+    N = sapply(group_results, function(x) x$n)
+  )
+  
+  for (m in metrics) {
+    metrics_df[[toupper(m)]] <- sapply(group_results, function(x) x[[m]])
+  }
+  
+  # Add overall metrics
+  overall_row <- data.frame(
+    Group = "Overall",
+    N = overall_metrics$n
+  )
+  
+  for (m in metrics) {
+    overall_row[[toupper(m)]] <- overall_metrics[[m]]
+  }
+  
+  metrics_df <- rbind(metrics_df, overall_row)
+  
+  return(metrics_df)
+}
+
+# Use our robust cross-validation function
+cv_results_monthly <- cross_validation_robust(
+  lm = model,
+  data = demand_data,
+  date_var = "Date",
+  grouping = "Month",
+  metrics = c("rmse", "mae", "mape", "r2", "adj_r2")
+)
+
+print("Cross-validation results by month:")
+print(cv_results_monthly)
+
+# For weekend/weekday
+cv_results_weekend <- cross_validation_robust(
+  lm = model,
+  data = demand_data, 
+  date_var = "Date",
+  grouping = "Weekend",
+  metrics = c("rmse", "mae", "mape", "r2", "adj_r2")
+)
+
+print("Cross-validation results by weekend/weekday:")
+print(cv_results_weekend)
+
+# Visualize the results (if not all months failed)
+if (nrow(cv_results_monthly) > 1 && requireNamespace("ggplot2", quietly = TRUE)) {
+  library(ggplot2)
+  
+  # Create plot data
+  plot_data <- cv_results_monthly[cv_results_monthly$Group != "Overall", ]
+  
+  # Convert Group to factor with proper month order
+  plot_data$Group <- factor(plot_data$Group, levels = month.name)
+  
+  # R-squared plot
+  ggplot(plot_data, aes(x = Group, y = R2)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(
+      title = "Model Performance by Month (R-squared)",
+      x = "Month",
+      y = "R-squared"
+    )
+}
+```

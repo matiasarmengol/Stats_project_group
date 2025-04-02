@@ -341,7 +341,7 @@ print(M3_res)
 ```
 
 ```{r model-val}
-group_var = "Weekend"
+group_var = "Month"
 M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
 M1_res <- cross_validation(Model_M1, selected, grouping=group_var)
 M3_res <- cross_validation(Model_M3, selected, grouping = group_var)
