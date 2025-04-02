@@ -5,14 +5,11 @@
 #' 
 #' @param lm A linear model
 #' @param data dataset containing all the variables used in the model
-#' @param date_var The date parameter in the dataset
-#' @param grouping The grouping method to use (Mothly or by Weekend/Weekday)
-#' @param metrics Vector of the different metrics to compute
 #' 
 cross_validation <- function(lm, data,
                              date_var = "Date",
                              grouping = "Monthly",
-                             metrics = c("rmse", "mae", "mape", "r2")){
+                             metrics = c("rmse", "mae", "mape", "r2", "adj_r2")){
   ## Validation of inputs
   if (!inherits(lm, "lm")){
     stop("Model must be a linear model (lm) object")
@@ -20,7 +17,7 @@ cross_validation <- function(lm, data,
   if (!date_var %in% names(data)) {
     stop(paste("Date variable", date_var, "not found in data"))
   }
-  valid_metrics <- c("rmse", "mae", "mape", "r2")
+  valid_metrics <- c("rmse", "mae", "mape", "r2", "adj_r2")
   if (!all(metrics %in% valid_metrics)) {
     stop(paste("Invalid metrics. Valid options are:", paste(valid_metrics, collapse = ", ")))
   }
@@ -48,8 +45,22 @@ cross_validation <- function(lm, data,
   model_formula <- formula(lm)
   model_vars <- all.vars(model_formula)
   
+  # Helper function to get number of predictors from a model
+  get_num_predictors <- function(model) {
+    # Get total number of coefficients (including intercept if present)
+    total_coeffs <- length(coef(model))
+    
+    # Check if model has intercept
+    has_intercept <- any(names(coef(model)) == "(Intercept)")
+    
+    # Subtract 1 if there's an intercept to get predictors count
+    num_predictors <- if (has_intercept) total_coeffs - 1 else total_coeffs
+    
+    return(num_predictors)
+  }
+  
   # Function to calculate performance metrics
-  calculate_metrics <- function(actual, predicted){
+  calculate_metrics <- function(actual, predicted, model = NULL){
     results <- list()
     
     if ("rmse" %in% metrics) {
@@ -64,19 +75,40 @@ cross_validation <- function(lm, data,
       results$mape <- 100 * mean(abs((actual - predicted) / actual), na.rm = TRUE)
     }
     
-    if ("r2" %in% metrics) {
-      # Corrected R-squared calculation
+    # Get sample size (excluding NA values)
+    n <- sum(!is.na(actual) & !is.na(predicted))
+    results$n <- n
+    
+    if ("r2" %in% metrics || "adj_r2" %in% metrics) {
+      # Calculate R-squared
       if (var(actual, na.rm = TRUE) > 0) {
         mean_actual <- mean(actual, na.rm = TRUE)
         ss_total <- sum((actual - mean_actual)^2, na.rm = TRUE)
         ss_residual <- sum((actual - predicted)^2, na.rm = TRUE)
-        results$r2 <- 1 - (ss_residual / ss_total)
+        r2 <- 1 - (ss_residual / ss_total)
+        
+        if ("r2" %in% metrics) {
+          results$r2 <- r2
+        }
+        
+        # Calculate adjusted R-squared if needed and if model is provided
+        if ("adj_r2" %in% metrics && !is.null(model)) {
+          num_predictors <- get_num_predictors(model)
+          if (n > num_predictors + 1) {  # Ensure we have enough data points
+            adj_r2 <- 1 - ((1 - r2) * (n - 1) / (n - num_predictors - 1))
+            results$adj_r2 <- adj_r2
+          } else {
+            results$adj_r2 <- NA
+            warning("Not enough data points to calculate adjusted R-squared")
+          }
+        } else if ("adj_r2" %in% metrics) {
+          results$adj_r2 <- NA  # Cannot calculate without model
+        }
       } else {
-        results$r2 <- NA
+        if ("r2" %in% metrics) results$r2 <- NA
+        if ("adj_r2" %in% metrics) results$adj_r2 <- NA
       }
     }
-    
-    results$n <- sum(!is.na(actual) & !is.na(predicted))
     
     return(results)
   }
@@ -120,7 +152,7 @@ cross_validation <- function(lm, data,
       overall_predictions <- c(overall_predictions, predictions)
       
       # Calculate metrics for this group
-      group_metrics <- calculate_metrics(actuals, predictions)
+      group_metrics <- calculate_metrics(actuals, predictions, model = cv_model)
       group_results[[as.character(grp)]] <- group_metrics
       
     }, error = function(e) {
@@ -129,7 +161,8 @@ cross_validation <- function(lm, data,
   }
   
   # Calculate overall metrics
-  overall_metrics <- calculate_metrics(overall_actuals, overall_predictions)
+  # For overall metrics we use the original model for adjusted R-squared calculation
+  overall_metrics <- calculate_metrics(overall_actuals, overall_predictions, model = lm)
   
   # Prepare final results
   results$group_metrics <- group_results
