@@ -186,7 +186,7 @@ if(exists("cross_validation")){
   cat("Failed to import cross_validation() function \n")
 }
 
-M0_res <- cross_validation(Baseline_model_M0, selected, grouping="Month")
+M0_res <- cross_validation(Baseline_model_M0, selected, grouping="Weekend")
 print(M0_res)
 ```
 
@@ -314,5 +314,22 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
 
 ```
 
+```{r model3}
+
+#Make a new categorical variable for weekdays and weekend days.
+selected$week_type <- factor(ifelse(selected$Day_Index %in% c(0, 6), 0, 1), 
+                       levels = c(0, 1), 
+                       labels = c("Weekend", "Weekday"))
+
+
+Model_M3 <- lm(Y ~ Wind + Solar + Temp + week_type + Cos_Month, data = selected)
+
+#summarise
+summary(Model_M3)
+
+#diagnostic plots
+par(mfrow = c(2,2))
+plot(Model_M3)
+```
 
 

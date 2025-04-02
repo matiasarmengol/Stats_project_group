@@ -5,11 +5,14 @@
 #' 
 #' @param lm A linear model
 #' @param data dataset containing all the variables used in the model
+#' @param date_var The date parameter in the dataset
+#' @param grouping The grouping method to use (Mothly or by Weekend/Weekday)
+#' @param metrics Vector of the different metrics to compute
 #' 
-cross_validation <-function(lm, data,
-                            date_var = "Date",
-                            grouping = "Monthly",
-                            metrics = c("rmse", "mae", "mape", "r2")){
+cross_validation <- function(lm, data,
+                             date_var = "Date",
+                             grouping = "Monthly",
+                             metrics = c("rmse", "mae", "mape", "r2")){
   ## Validation of inputs
   if (!inherits(lm, "lm")){
     stop("Model must be a linear model (lm) object")
@@ -27,7 +30,7 @@ cross_validation <-function(lm, data,
     data[[date_var]] <- as.Date(data[[date_var]])
   }
   
-  ## Group by month
+  ## Group by month or weekend
   if (grouping == "Month"){
     data$group <- factor(month(data[[date_var]]), levels = 1:12,
                          labels = month.name)
@@ -45,7 +48,7 @@ cross_validation <-function(lm, data,
   model_formula <- formula(lm)
   model_vars <- all.vars(model_formula)
   
-  
+  # Function to calculate performance metrics
   calculate_metrics <- function(actual, predicted){
     results <- list()
     
@@ -62,9 +65,11 @@ cross_validation <-function(lm, data,
     }
     
     if ("r2" %in% metrics) {
+      # Corrected R-squared calculation
       if (var(actual, na.rm = TRUE) > 0) {
-        ss_total <- sum((actual - mean(actual))^2)
-        ss_residual <- sum((actual - predicted)^2) 
+        mean_actual <- mean(actual, na.rm = TRUE)
+        ss_total <- sum((actual - mean_actual)^2, na.rm = TRUE)
+        ss_residual <- sum((actual - predicted)^2, na.rm = TRUE)
         results$r2 <- 1 - (ss_residual / ss_total)
       } else {
         results$r2 <- NA
@@ -104,7 +109,11 @@ cross_validation <-function(lm, data,
       
       # Predict on test data
       predictions <- predict(cv_model, newdata = test_data)
-      actuals <- test_data[["Y"]]
+      
+      # Extract the response variable from the test data
+      # Get the response variable name from the model formula
+      response_var <- all.vars(formula(lm))[1]
+      actuals <- test_data[[response_var]]
       
       # Store predictions for overall metrics
       overall_actuals <- c(overall_actuals, actuals)
@@ -118,13 +127,14 @@ cross_validation <-function(lm, data,
       warning(paste("Error in cross-validation for group:", grp, "-", e$message))
     })
   }
+  
   # Calculate overall metrics
   overall_metrics <- calculate_metrics(overall_actuals, overall_predictions)
   
   # Prepare final results
   results$group_metrics <- group_results
   results$overall_metrics <- overall_metrics
-  results$group_by <- group_by
+  results$group_by <- grouping  # Fixed variable name from group_by to grouping
   
   # Create summary data frame for easy viewing
   metrics_df <- data.frame(
@@ -136,6 +146,17 @@ cross_validation <-function(lm, data,
     metrics_df[[toupper(m)]] <- sapply(group_results, function(x) x[[m]])
   }
   
+  # Add overall metrics as the last row
+  overall_row <- data.frame(
+    Group = "Overall",
+    N = overall_metrics$n
+  )
+  
+  for (m in metrics) {
+    overall_row[[toupper(m)]] <- overall_metrics[[m]]
+  }
+  
+  metrics_df <- rbind(metrics_df, overall_row)
   
   return(metrics_df)
 }
