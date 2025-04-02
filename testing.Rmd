@@ -273,6 +273,22 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 #create faceted plot of each covariate against Y to identify nonlinear 
 #relationships
 
+#merge the two sets to create a bigger one with daily average and daily variance
+
+#library(lubridate) for working with dates and times
+library(lubridate)
+
+daily <- SCS_hourly_temp |> 
+  mutate(Date = as_date(Date)) |> 
+  group_by(day) |> 
+  summarise(
+    daily_avg = mean(temp, na.rm = TRUE),
+    daily_var = var(temp, na.rm = TRUE)
+  )
+
+big_set <- SCS_demand_modelling |> 
+  left_join(daily, by = "Date")
+
 #clean up dataset for new application
 vars2 <- c('wind', 'solar_S', 'Y' = 'demand_gross', 'temp', 'wdayindex', 'monthindex', 'year', 'TO', 'TE', 'start_year', 'DSN')
 
