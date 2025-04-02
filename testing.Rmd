@@ -278,6 +278,7 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 
 #library(lubridate) for working with dates and times
 
+SCS_hourly_temp$Date <- as.POSIXct(SCS_hourly_temp$Date)
 
 daily <- SCS_hourly_temp |> 
   mutate(Date = as_date(Date)) |> 
