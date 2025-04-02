@@ -17,7 +17,7 @@ library(reshape2)
 ### Import Dataset
 ```{r import_data, include=FALSE}
 SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
-SCS_hourly_temp <- read_csv("Project02/SCS_demand_modelling.csv")
+SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
 ```
 ### Clean Data
 ```{r Clean data, include=FALSE}
@@ -294,7 +294,7 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
   geom_point() + 
   geom_smooth(method = "lm", se = FALSE) +
   facet_wrap( ~ variable, scales = "free_x") +
-  theme_minimal()
+  theme_minimal() 
 
 ```
 
