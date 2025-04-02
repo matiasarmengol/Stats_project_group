@@ -20,6 +20,7 @@ library(lubridate)
 SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
 ```
+
 ### Clean Data
 ```{r Clean data, include=FALSE}
 #CLEANING - prep for M0 model
@@ -46,6 +47,7 @@ View(selected)
 
 ```
 
+### Baseline model M_0
 ```{r Baseline-model, include=FALSE}
 #Create baseline model
 Baseline_model_M0 <- lm(Y ~ Wind + Solar + Temp + Day_Index + Month_Index, data = selected)
@@ -57,6 +59,7 @@ summary(Baseline_model_M0)
 par(mfrow = c(2, 2))
 plot(Baseline_model_M0)
 ```
+
 ### Correlation Plots
 ```{r Correlation-plots, include=FALSE}
 numeric_vars <- SCS_demand_modelling %>%
@@ -72,7 +75,7 @@ print(cor_table)
 # Reshape the correlation matrix for ggplot
 cor_data <- melt(cor_matrix)
 
-# Create heatmap with ggplot2
+# Create heat-map with ggplot2
 heatmap <- ggplot(data = cor_data, aes(x = Var1, y = Var2, fill = value)) +
   geom_tile() +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
@@ -180,6 +183,7 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
   labs(title = "Demand vs Day of Week (Cosine)",
        x = "Day of Week (cos transform)", y = "Gross Demand")
 ```
+
 ### Cross Validation
 ```{r Cross-Validation}
 source("code.r")
@@ -196,15 +200,16 @@ M0_res <- cross_validation(Baseline_model_M0, selected, grouping="Weekend")
 print(M0_res)
 ```
 
+### Model_1
 ```{r M1, include=FALSE}
 #first attempt at a new model - using cos of day and month instead. We expect 
 #a cyclic relationship as the year progresses so we use the cosine of our time
 #variables here to see if it better fits the data.
 
-#initialise M1
+#initialize M1
 Model_M1 <- lm(Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month, data = selected)
 
-#summarise
+#summarize
 summary(Model_M1)
 
 #diagnostic plots
@@ -234,6 +239,7 @@ plot(Model_M1)
 #'resulting model against this one.
 ```
 
+### Plots of Gross demand against time
 ```{r demand-time models}
 # Convert Date column to Date format
 SCS_demand_modelling <- SCS_demand_modelling %>%
@@ -271,7 +277,6 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
        x = "Year", y = "Average Gross Demand (MW)") +
   theme_minimal()
 ```
-
 
 
 ###Plot Covariates, Include Daily Avg and Var
@@ -316,9 +321,10 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
   theme_minimal() 
 
 #RIP M2 ye were never created
-
+#(2025-2025)
 ```
 
+### Model_3
 ```{r model3}
 
 Model_M3 <- lm(Y ~ Solar + week_type + season + Temp + year, data = selected)
@@ -335,6 +341,7 @@ print(M3_res)
 
 ```
 
+### Model_4
 ```{r model4}
 Model_M4 <- lm(Y ~ Solar + week_type + season + Temp + year + daily_avg + daily_var, data = big_set)
 
@@ -342,6 +349,7 @@ summary(Model_M4)
 
 ```
 
+### Cross-validation for each model
 ```{r model-val}
 group_var = "Month"
 M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
