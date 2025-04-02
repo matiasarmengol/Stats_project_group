@@ -29,6 +29,9 @@ selected <- select(SCS_demand_modelling, vars)
 selected <- selected |> 
   #remove any NAs, there arent any tho
   filter(complete.cases(selected)) |> 
+  #removing outliers - this really didnt remove a lot though, not sure if thats good?
+  filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |>
+  #add in cosines of day and month index as covariates
   mutate("Cos_Day" = cos(Day_Index)) |> 
   mutate("Cos_Month" = cos(Month_Index))
 
