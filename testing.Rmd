@@ -12,6 +12,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(reshape2)
+library(lubridate)
 ```
 
 ### Import Dataset
@@ -276,7 +277,7 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 #merge the two sets to create a bigger one with daily average and daily variance
 
 #library(lubridate) for working with dates and times
-library(lubridate)
+
 
 daily <- SCS_hourly_temp |> 
   mutate(Date = as_date(Date)) |> 
