@@ -292,9 +292,7 @@ a_summary <- a_set |>
   )
 
 #merge with SCS_demand_modelling
-big_set <- left_join(SCS_demand_modelling, a_summary, by = "Date")
-
-
+big_set <- left_join(selected, a_summary, by = "Date")
 
 #clean up dataset for new application
 vars2 <- c('wind', 'solar_S', 'Y' = 'demand_gross', 'temp', 'wdayindex', 'monthindex', 'year', 'TO', 'TE', 'start_year', 'DSN', 'daily_avg', 'daily_var')
@@ -305,8 +303,6 @@ new_set <- big_set |>
   filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
   mutate("Cos_Day" = cos(wdayindex)) |> 
   mutate("Cos_Month" = cos(monthindex))
-
-#View(new_set)
 
 other_vars = names(new_set)[names(new_set) != "Y"]
 
@@ -339,10 +335,18 @@ print(M3_res)
 
 ```
 
+```{r model4}
+Model_M4 <- lm(Y ~ Solar + week_type + season + Temp + year + daily_avg + daily_var, data = big_set)
+
+summary(Model_M4)
+
+```
+
 ```{r model-val}
 group_var = "Month"
 M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
 M1_res <- cross_validation(Model_M1, selected, grouping=group_var)
 M3_res <- cross_validation(Model_M3, selected, grouping = group_var)
+M4_res <- cross_validation(Model_M4, selected, grouping = group_var)
 ```
 
