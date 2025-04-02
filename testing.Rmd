@@ -25,17 +25,22 @@ SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
 #CLEANING - prep for M0 model
 
 #select only involved covariates and output variable
-vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
+vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex', 'year')
 selected <- select(SCS_demand_modelling, vars)
 
 selected <- selected |> 
-  #remove any NAs, there arent any tho
-  filter(complete.cases(selected)) |> 
-  #removing outliers - this really didnt remove a lot though, not sure if thats good?
-  filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |>
-  #add in cosines of day and month index as covariates
-  mutate("Cos_Day" = cos(Day_Index)) |> 
-  mutate("Cos_Month" = cos(Month_Index))
+  # Removing outliers using IQR method
+  filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
+  # Adding cosine transformations
+  mutate(Cos_Day = cos(Day_Index)) |> 
+  mutate(Cos_Month = cos(Month_Index)) |> 
+  # Creating categorical variables
+  mutate(week_type = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
+                            levels = c(0, 1), 
+                            labels = c("Weekend", "Weekday"))) |> 
+  mutate(season = factor(ifelse(Month_Index %in% c(0, 1, 10, 11), 1, 0), 
+                         levels = c(0, 1), 
+                         labels = c("Not Winter", "Winter")))
 
 View(selected)
 
@@ -278,6 +283,7 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 
 #library(lubridate) for working with dates and times
 
+SCS_hourly_temp$Date <- as.POSIXct(SCS_hourly_temp$Date)
 
 daily <- SCS_hourly_temp |> 
   mutate(Date = as_date(Date)) |> 
@@ -319,16 +325,9 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
 ```
 
 ```{r model3}
+Model_M3 <- lm(Y ~ Solar + week_type + season + Temp + year, data = selected)
 
-#Make a new categorical variable for weekdays and weekend days.
-selected$week_type <- factor(ifelse(selected$Day_Index %in% c(0, 6), 0, 1), 
-                       levels = c(0, 1), 
-                       labels = c("Weekend", "Weekday"))
-
-
-Model_M3 <- lm(Y ~ Wind + Solar + Temp + week_type + Cos_Month, data = selected)
-
-#summarise
+#summarize
 summary(Model_M3)
 
 #diagnostic plots
