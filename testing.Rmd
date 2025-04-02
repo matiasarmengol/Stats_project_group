@@ -336,4 +336,10 @@ par(mfrow = c(2,2))
 plot(Model_M3)
 ```
 
+```{r model-val}
+group_var = "Weekend"
+M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
+M1_res <- cross_validation(Model_M1, selected, grouping=group_var)
+M3_res <- cross_validation(Model_M3, selected, grouping = group_var)
+```
 
