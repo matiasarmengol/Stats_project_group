@@ -280,7 +280,7 @@ library(lubridate)
 
 daily <- SCS_hourly_temp |> 
   mutate(Date = as_date(Date)) |> 
-  group_by(day) |> 
+  group_by(Date) |> 
   summarise(
     daily_avg = mean(temp, na.rm = TRUE),
     daily_var = var(temp, na.rm = TRUE)
@@ -290,9 +290,9 @@ big_set <- SCS_demand_modelling |>
   left_join(daily, by = "Date")
 
 #clean up dataset for new application
-vars2 <- c('wind', 'solar_S', 'Y' = 'demand_gross', 'temp', 'wdayindex', 'monthindex', 'year', 'TO', 'TE', 'start_year', 'DSN')
+vars2 <- c('wind', 'solar_S', 'Y' = 'demand_gross', 'temp', 'wdayindex', 'monthindex', 'year', 'TO', 'TE', 'start_year', 'DSN', 'daily_avg', 'daily_var')
 
-new_set <- SCS_demand_modelling |> 
+new_set <- big_set |> 
   select(all_of(vars2)) |> 
   filter(complete.cases(SCS_demand_modelling)) |> 
   filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
@@ -308,7 +308,7 @@ new_set_long <- new_set |>
 
 ggplot(new_set_long, aes(x = value, y = Y)) +
   geom_point() + 
-  geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(method = "loess", se = FALSE) +
   facet_wrap( ~ variable, scales = "free_x") +
   theme_minimal() 
 
