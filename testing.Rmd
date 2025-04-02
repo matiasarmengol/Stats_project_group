@@ -25,7 +25,7 @@ SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
 #CLEANING - prep for M0 model
 
 #select only involved covariates and output variable
-vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex')
+vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex', 'TE', 'TO')
 selected <- select(SCS_demand_modelling, vars)
 
 selected <- selected |> 
@@ -329,7 +329,7 @@ selected$season <- factor(ifelse(selected$Month_Index %in% c(0, 1, 10, 11), 1, 0
                     levels = c(0, 1), 
                     labels = c("Not Winter", "Winter"))
 
-Model_M3 <- lm(Y ~ Wind + Solar + Temp + week_type + season, data = selected)
+Model_M3 <- lm(Y ~ Solar + Temp + week_type + season, data = selected)
 
 #summarise
 summary(Model_M3)
