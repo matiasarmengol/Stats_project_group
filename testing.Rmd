@@ -313,6 +313,9 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
   facet_wrap( ~ variable, scales = "free_x") +
   theme_minimal() 
 
+#M2 <- lm(Y ~ )
+
+
 ```
 
 ```{r model3}
