@@ -274,8 +274,8 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 
 
 
-###Plot Covariates, Fit Better Model
-```{r model2, include=FALSE}
+###Plot Covariates, Include Daily Avg and Var
+```{r merge_sets, include=FALSE}
 
 #convert Date from char to date
 a_set <- SCS_hourly_temp
@@ -283,7 +283,7 @@ a_set$Date <- as.POSIXct(a_set$Date, format = "%d/%m/%Y %H:%M")
 
 #summarise to get daily averages and variances
 a_summary <- a_set |> 
-  mutate(Date = format(Date, "%d/%m/%Y")) |> 
+  mutate(Date = as.Date(Date)) |> 
   group_by(Date) |> 
   summarise(
     daily_avg = mean(temp),
@@ -292,7 +292,7 @@ a_summary <- a_set |>
   )
 
 #merge with SCS_demand_modelling
-
+big_set <- left_join(SCS_demand_modelling, a_summary, by = "Date")
 
 
 
@@ -319,8 +319,7 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
   facet_wrap( ~ variable, scales = "free_x") +
   theme_minimal() 
 
-#M2 <- lm(Y ~ )
-
+#RIP M2 ye were never created
 
 ```
 
