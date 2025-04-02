@@ -271,18 +271,30 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
        x = "Year", y = "Average Gross Demand (MW)") +
   theme_minimal()
 ```
+
+
+
 ###Plot Covariates, Fit Better Model
 ```{r model2, include=FALSE}
-SCS_hourly_temp$Date <- as.POSIXct(SCS_hourly_temp$Date, format = "%d/%m/%Y %H:%M:%S",
-    daily_avg = mean(temp, na.rm = TRUE),
-    daily_var = var(temp, na.rm = TRUE)
+
+#convert Date from char to date
+a_set <- SCS_hourly_temp
+a_set$Date <- as.POSIXct(a_set$Date, format = "%d/%m/%Y %H:%M")
+
+#summarise to get daily averages and variances
+a_summary <- a_set |> 
+  mutate(Date = format(Date, "%d/%m/%Y")) |> 
+  group_by(Date) |> 
+  summarise(
+    daily_avg = mean(temp),
+    daily_var = var(temp),
+    .groups = "drop"
   )
 
-big_set <- SCS_hourly_temp
-  
-big_set <- big_set |> 
-  mutate(Date = as.POSIXct(big_set$Date, format = "%d/%m/%Y %H:%M:%S")) |> 
-  left_join(SCS_demand_modelling, by = "Date")
+#merge with SCS_demand_modelling
+
+
+
 
 #clean up dataset for new application
 vars2 <- c('wind', 'solar_S', 'Y' = 'demand_gross', 'temp', 'wdayindex', 'monthindex', 'year', 'TO', 'TE', 'start_year', 'DSN', 'daily_avg', 'daily_var')
