@@ -404,7 +404,10 @@ compare_winter <- function(model, data, other_year) {
       )
     )
     
+  prediction <- predict(model, data = other_set)
+  max_predicted <- max(prediction, na.rm = TRUE)
   
+  return(list(control_max = control_max, max_predicted = max_predicted))
 }
   
   
