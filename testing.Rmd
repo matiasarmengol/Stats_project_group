@@ -52,14 +52,11 @@ View(selected)
 
 ### Baseline model M_0
 ```{r Baseline-model, include=FALSE}
-#Create baseline model
 M0 <- Y ~ Wind + Solar + Temp + Day_Index + Month_Index
 Model_M0 <- lm(M0, data = selected)
 
-# Display model summary
 summary(Model_M0)
 
-#Diagnostic plots
 par(mfrow = c(2, 2))
 plot(Model_M0)
 ```
@@ -196,14 +193,11 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 #a cyclic relationship as the year progresses so we use the cosine of our time
 #variables here to see if it better fits the data.
 
-#initialize M1
 M1 <- Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month
 Model_M1 <- lm(M1, data = selected)
 
-#summarize
 summary(Model_M1)
 
-#diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M1)
 
@@ -271,14 +265,14 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 ```
 
 
-###Plot Covariates, Include Daily Avg and Var
+### Plot Covariates, Include Daily Avg and Var
 ```{r merge_sets, include=FALSE}
 
 #convert Date from char to date
 a_set <- SCS_hourly_temp
 a_set$Date <- as.POSIXct(a_set$Date, format = "%d/%m/%Y %H:%M")
 
-#summarise to get daily averages and variances
+#summarize to get daily averages and variances
 a_summary <- a_set |> 
   mutate(Date = as.Date(Date)) |> 
   group_by(Date) |> 
@@ -327,10 +321,8 @@ ggplot(new_set_long_numeric, aes(x = value, y = Y)) +
 M3 <- Y ~ Solar + week_type + season + Temp + year
 Model_M3 <- lm(M3, data = selected)
 
-#summarize
 summary(Model_M3)
 
-#diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M3)
 ```
@@ -345,7 +337,7 @@ summary(Model_M4)
 ```
 
 
-### Model 5
+### Model_5
 ```{r model5}
 big_set$year_d = abs((big_set$year)-2005)
 M5 <- Y ~ Solar + week_type + season + year_d + daily_avg + daily_var
@@ -382,6 +374,7 @@ for (model_name in names(models)) {
   # Print progress
   cat("Completed cross-validation for", model_name, "\n")
 }
+print(results)
 ```
 ```{r modular-cross-validation}
 source("code_modular.R")
@@ -405,7 +398,35 @@ results <- cross_validate_models(models = models, data = big_set)
 winter13to14 <- SCS_demand_modelling |> 
   filter((year == "2013" & monthindex %in% c(10, 11)) | (year == "2014" & monthindex %in% c(0, 1, 2)))
 
-
+#' model: the model we use to generate our predictions
+#' data: the dataset we train the model on, probably SCS_demand_modelling
+#' other_year: the (LOWER of the two) year whose weather we wish to 'import' into 2013/14 as a string
+compare_winter <- function(model, data, other_year) {
+  
+  #obtain the actual maximum gross demand from the 2013/14 winter
+  control_set <- data |> 
+    filter((year == "2013" & monthindex %in% c(10, 11)) | (year == "2014" & monthindex %in% c(0, 1, 2)))
+  control_max <- max(control_set$demand_gross)
+  
+  #create our specified set to train on
+  other_set <- data |> 
+    filter((year == as.character(other_year) & monthindex %in% c(10, 11)) | (year = as.character(as.numeric(other_year) + 1) & monthindex %in% c(0, 1, 2))) |> 
+    mutate(
+      year = case_when(
+        year == as.character(other_year) ~ "2013",
+        year == as.character(as.numeric(other_year) + 1) ~ "2014",
+        TRUE ~ year #don't break if it's not one of the above
+      )
+    )
+    
+  prediction <- predict(model, data = other_set)
+  max_predicted <- max(prediction, na.rm = TRUE)
+  
+  return(list(control_max = control_max, max_predicted = max_predicted))
+}
+  
+  
+  
 ```
 
 
