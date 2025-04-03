@@ -300,21 +300,26 @@ a_summary <- a_set |>
 big_set <- left_join(selected, a_summary, by = "Date")
 
 #clean up dataset for new application
-vars2 <- c('wind', 'solar_S', 'Y' = 'demand_gross', 'temp', 'wdayindex', 'monthindex', 'year', 'TO', 'TE', 'start_year', 'DSN', 'daily_avg', 'daily_var')
+vars2 <- c('Wind', 'Solar', 'Y', 'Temp', 'Day_Index', 'Month_Index', 'year', 'Cos_Day', 'Cos_Month', 'week_type', 'season', 'daily_avg', 'daily_var')
 
 new_set <- big_set |> 
   select(all_of(vars2)) |> 
-  filter(complete.cases(SCS_demand_modelling)) |> 
-  filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
-  mutate("Cos_Day" = cos(wdayindex)) |> 
-  mutate("Cos_Month" = cos(monthindex))
+  filter(complete.cases(big_set)) |> 
+  filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y))
 
 other_vars = names(new_set)[names(new_set) != "Y"]
 
-new_set_long <- new_set |> 
-  pivot_longer(cols = all_of(other_vars), names_to = "variable", values_to = "value")
+# Assuming 'new_set' is your original data frame and 'other_vars' is a vector of column names.
 
-ggplot(new_set_long, aes(x = value, y = Y)) +
+# Identify numeric and factor columns
+numeric_vars <- new_set %>% select(all_of(other_vars)) %>% select_if(is.numeric) %>% names()
+factor_vars <- new_set %>% select(all_of(other_vars)) %>% select_if(is.factor) %>% names()
+
+# Pivot numeric variables
+new_set_long_numeric <- new_set %>%
+  pivot_longer(cols = all_of(numeric_vars), names_to = "variable", values_to = "value")
+
+ggplot(new_set_long_numeric, aes(x = value, y = Y)) +
   geom_point() + 
   geom_smooth(method = "loess", se = FALSE) +
   facet_wrap( ~ variable, scales = "free_x") +
@@ -322,7 +327,6 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
 
 #RIP M2 ye were never created
 #(2025-2025)
-#This is the cell that causes an error
 ```
 
 ### Model_3
