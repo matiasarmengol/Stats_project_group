@@ -1,16 +1,8 @@
-#' Cross Validation Function
-#' Evaluates linear model using cross validation, 
-#' group data by specifc units (months, weekend/weekdays)
-#' compute performance metrics for each group
-#' 
-#' @param lm A linear model
-#' @param data dataset containing all the variables used in the model
-#' 
-cross_validation <- function(lm, data,
-                             date_var = "Date",
-                             grouping = "Monthly",
-                             metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
-                             k = FALSE){
+cross_validation_fixed <- function(lm, data,
+                                   date_var = "Date",
+                                   grouping = "Month",
+                                   metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
+                                   k = FALSE){
   ## Validation of inputs
   if (!inherits(lm, "lm")){
     stop("Model must be a linear model (lm) object")
@@ -23,6 +15,14 @@ cross_validation <- function(lm, data,
     stop(paste("Invalid metrics. Valid options are:", paste(valid_metrics, collapse = ", ")))
   }
   
+  ## Extract response variable from model formula
+  model_formula <- formula(lm)
+  model_vars <- all.vars(model_formula)
+  response_var <- model_vars[1]  # First variable is the response
+  
+  ## Identify factor variables in the dataset
+  factor_vars <- names(data)[sapply(data, is.factor)]
+  
   ## Check date variable is as a date format
   if (!inherits(data[[date_var]], "Date")){
     data[[date_var]] <- as.Date(data[[date_var]])
@@ -30,11 +30,11 @@ cross_validation <- function(lm, data,
   
   ## Group by month or weekend
   if (grouping == "Month"){
-    data$group <- factor(month(data[[date_var]]), levels = 1:12,
+    data$group <- factor(lubridate::month(data[[date_var]]), levels = 1:12,
                          labels = month.name)
   } else if (grouping == "Weekend"){
     data$group <- factor(
-      ifelse(wday(data[[date_var]]) %in% c(1, 7), "Weekend", "Weekday"),
+      ifelse(lubridate::wday(data[[date_var]]) %in% c(1, 7), "Weekend", "Weekday"),
       levels = c("Weekday", "Weekend")
     )
   } else if (grouping == "k-fold"){
@@ -45,14 +45,9 @@ cross_validation <- function(lm, data,
       warning(paste("Error in k-fold cross validation. Select a k:", e$message))
     })
     
-    } else{
+  } else{
     stop(paste("Invalid grouping. Valid options are: Month, Weekend, k-fold"))
   }
-  
-  
-  # Get model formula and variables
-  model_formula <- formula(lm)
-  model_vars <- all.vars(model_formula)
   
   # Helper function to get number of predictors from a model
   get_num_predictors <- function(model) {
@@ -70,6 +65,13 @@ cross_validation <- function(lm, data,
   
   # Function to calculate performance metrics
   calculate_metrics <- function(actual, predicted, model = NULL){
+    # Guard against NULL or empty vectors
+    if (is.null(actual) || length(actual) == 0 || 
+        is.null(predicted) || length(predicted) == 0) {
+      warning("Empty or NULL data passed to calculate_metrics")
+      return(list(rmse = NA, mae = NA, mape = NA, r2 = NA, adj_r2 = NA, n = 0))
+    }
+    
     results <- list()
     
     if ("rmse" %in% metrics) {
@@ -146,7 +148,7 @@ cross_validation <- function(lm, data,
     
     tryCatch({
       # Create a new model that drops problematic factor variables
-      model_formula <- formula(lm)
+      modified_formula <- model_formula
       
       # Remove factor variables that might cause issues
       vars_to_remove <- c()
@@ -165,16 +167,23 @@ cross_validation <- function(lm, data,
       # Remove problematic variables from formula
       if (length(vars_to_remove) > 0) {
         for (var in vars_to_remove) {
-          model_formula <- update(model_formula, paste0(". ~ . - ", var))
+          modified_formula <- update(modified_formula, paste0(". ~ . - ", var))
         }
       }
       
       # Fit model on training data with modified formula
-      cv_model <- lm(model_formula, data = train_data)
+      cv_model <- lm(modified_formula, data = train_data)
       
       # Predict on test data
       predictions <- predict(cv_model, newdata = test_data)
       actuals <- test_data[[response_var]]
+      
+      # Verify we have valid data
+      if (length(actuals) == 0 || all(is.na(actuals)) || 
+          length(predictions) == 0 || all(is.na(predictions))) {
+        warning(paste("No valid data for group:", grp))
+        next
+      }
       
       # Store results
       overall_actuals <- c(overall_actuals, actuals)
@@ -189,6 +198,12 @@ cross_validation <- function(lm, data,
     })
   }
   
+  # Check if we have any valid results
+  if (length(overall_actuals) == 0 || length(overall_predictions) == 0) {
+    warning("No valid predictions or actuals generated during cross-validation")
+    return(NULL)
+  }
+  
   # Calculate overall metrics
   # For overall metrics we use the original model for adjusted R-squared calculation
   overall_metrics <- calculate_metrics(overall_actuals, overall_predictions, model = lm)
@@ -196,7 +211,7 @@ cross_validation <- function(lm, data,
   # Prepare final results
   results$group_metrics <- group_results
   results$overall_metrics <- overall_metrics
-  results$group_by <- grouping  # Fixed variable name from group_by to grouping
+  results$group_by <- grouping
   
   # Create summary data frame for easy viewing
   metrics_df <- data.frame(
@@ -221,57 +236,4 @@ cross_validation <- function(lm, data,
   metrics_df <- rbind(metrics_df, overall_row)
   
   return(metrics_df)
-}
-
-
-
-
-# Function for simple cross-validation
-simple_cross_validation <- function(lm_formula, data, 
-                                    metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
-                                    fold_n = 5) {
-  
-  # Shuffle data and create folds
-  set.seed(123)  # Ensure reproducibility
-  data <- data[sample(nrow(data)), ]
-  folds <- cut(seq(1, nrow(data)), breaks = fold_n, labels = FALSE)
-  
-  # Initialize metric storage
-  results <- list(rmse = c(), mae = c(), mape = c(), r2 = c(), adj_r2 = c())
-  
-  for (i in 1:fold_n) {
-    # Split into training and validation sets
-    test_idx <- which(folds == i, arr.ind = TRUE)
-    test_data <- data[test_idx, ]
-    train_data <- data[-test_idx, ]
-    
-    # Train model
-    model <- lm(lm_formula, data = train_data)
-    
-    # Predictions
-    preds <- predict(model, newdata = test_data)
-    actuals <- test_data[[all.vars(lm_formula)[1]]]  # Get response variable
-    
-    # Compute metrics
-    if ("rmse" %in% metrics) {
-      results$rmse <- c(results$rmse, sqrt(mean((preds - actuals)^2)))
-    }
-    if ("mae" %in% metrics) {
-      results$mae <- c(results$mae, mean(abs(preds - actuals)))
-    }
-    if ("mape" %in% metrics) {
-      results$mape <- c(results$mape, mean(abs((preds - actuals) / actuals)) * 100)
-    }
-    if ("r2" %in% metrics) {
-      results$r2 <- c(results$r2, cor(preds, actuals)^2)
-    }
-    if ("adj_r2" %in% metrics) {
-      results$adj_r2 <- c(results$adj_r2, summary(model)$adj.r.squared)
-    }
-  }
-  
-  # Compute the average for each metric
-  avg_results <- sapply(results, mean)
-  
-  return(avg_results)
 }

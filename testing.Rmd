@@ -366,30 +366,22 @@ if(exists("cross_validation")){
   cat("Failed to import cross_validation() function \n")
 }
 
-# Group cross-validation
 group_var = "Month"
-M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
-M1_res <- cross_validation(Model_M1, selected, grouping=group_var)
-M3_res <- cross_validation(Model_M3, selected, grouping = group_var)
-M4_res <- cross_validation(Model_M4, selected, grouping = group_var)
+k = 5
+models <- list(
+  Model_M0 = Model_M0,
+  Model_M1 = Model_M1,
+  Model_M3 = Model_M3,
+  Model_M4 = Model_M4,
+  Model_M5 = Model_M5
+)
 
-# Individual cross-validation
-M0_ind <-simple_cross_validation(M0, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M1_ind <-simple_cross_validation(M1, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M3_ind <-simple_cross_validation(M3, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M4_ind <-simple_cross_validation(M4, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M5_ind <-simple_cross_validation(M5, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-
-print("Baseline model M0: ")
-print(M0_ind)
-print("Model M1: ")
-print(M1_ind)
-print("Model M3: ")
-print(M3_ind)
-print("Model M4: ")
-print(M4_ind)
-print("Model M5: ")
-print(M5_ind)
+results <- list()
+for (model_name in names(models)) {
+  results[[model_name]] <- cross_validation_fixed(models[[model_name]], big_set, grouping = group_var)
+  # Print progress
+  cat("Completed cross-validation for", model_name, "\n")
+}
 ```
 
 
