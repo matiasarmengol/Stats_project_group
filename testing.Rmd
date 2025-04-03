@@ -369,7 +369,6 @@ M4_res <- cross_validation(Model_M4, selected, grouping = group_var)
 winter13to14 <- SCS_demand_modelling |> 
   filter((year == "2013" & monthindex %in% c(10, 11)) | (year == "2014" & monthindex %in% c(0, 1, 2)))
 
-#gonna compare max demand over winter seasons compared to 2013/14
 
 ```
 
