@@ -368,7 +368,7 @@ if(exists("cross_validation")){
 
 # Group cross-validation
 group_var = "Month"
-M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
+M0_res <- cross_validation(Model_M0, selected, grouping=group_var)
 M1_res <- cross_validation(Model_M1, selected, grouping=group_var)
 M3_res <- cross_validation(Model_M3, selected, grouping = group_var)
 M4_res <- cross_validation(Model_M4, selected, grouping = group_var)
@@ -380,15 +380,19 @@ M3_ind <-simple_cross_validation(M3, big_set, metrics = c("rmse", "mae", "mape",
 M4_ind <-simple_cross_validation(M4, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
 M5_ind <-simple_cross_validation(M5, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
 
-print("Baseline model M0: ")
+cat("Baseline model M0:")
 print(M0_ind)
-print("Model M1: ")
+cat("\n\n")
+cat("Model M1: ")
 print(M1_ind)
-print("Model M3: ")
+cat("\n\n")
+cat("Model M3: ")
 print(M3_ind)
-print("Model M4: ")
+cat("\n\n")
+cat("Model M4: ")
 print(M4_ind)
-print("Model M5: ")
+cat("\n\n")
+cat("Model M5: ")
 print(M5_ind)
 ```
 
