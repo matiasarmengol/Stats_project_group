@@ -52,16 +52,13 @@ View(selected)
 
 ### Baseline model M_0
 ```{r Baseline-model, include=FALSE}
-#Create baseline model
 M0 <- Y ~ Wind + Solar + Temp + Day_Index + Month_Index
-Baseline_model_M0 <- lm(M0, data = selected)
+Model_M0 <- lm(M0, data = selected)
 
-# Display model summary
-summary(Baseline_model_M0)
+summary(Model_M0)
 
-#Diagnostic plots
 par(mfrow = c(2, 2))
-plot(Baseline_model_M0)
+plot(Model_M0)
 ```
 
 
@@ -196,14 +193,11 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 #a cyclic relationship as the year progresses so we use the cosine of our time
 #variables here to see if it better fits the data.
 
-#initialize M1
 M1 <- Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month
 Model_M1 <- lm(M1, data = selected)
 
-#summarize
 summary(Model_M1)
 
-#diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M1)
 
@@ -271,14 +265,14 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 ```
 
 
-###Plot Covariates, Include Daily Avg and Var
+### Plot Covariates, Include Daily Avg and Var
 ```{r merge_sets, include=FALSE}
 
 #convert Date from char to date
 a_set <- SCS_hourly_temp
 a_set$Date <- as.POSIXct(a_set$Date, format = "%d/%m/%Y %H:%M")
 
-#summarise to get daily averages and variances
+#summarize to get daily averages and variances
 a_summary <- a_set |> 
   mutate(Date = as.Date(Date)) |> 
   group_by(Date) |> 
@@ -327,10 +321,8 @@ ggplot(new_set_long_numeric, aes(x = value, y = Y)) +
 M3 <- Y ~ Solar + week_type + season + Temp + year
 Model_M3 <- lm(M3, data = selected)
 
-#summarize
 summary(Model_M3)
 
-#diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M3)
 ```
@@ -345,7 +337,7 @@ summary(Model_M4)
 ```
 
 
-### Model 5
+### Model_5
 ```{r model5}
 big_set$year_d = abs((big_set$year)-2005)
 M5 <- Y ~ Solar + week_type + season + year_d + daily_avg + daily_var
@@ -366,19 +358,23 @@ if(exists("cross_validation")){
   cat("Failed to import cross_validation() function \n")
 }
 
-# Group cross-validation
 group_var = "Month"
-M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
-M1_res <- cross_validation(Model_M1, selected, grouping=group_var)
-M3_res <- cross_validation(Model_M3, selected, grouping = group_var)
-M4_res <- cross_validation(Model_M4, selected, grouping = group_var)
+k = 5
+models <- list(
+  Model_M0 = Model_M0,
+  Model_M1 = Model_M1,
+  Model_M3 = Model_M3,
+  Model_M4 = Model_M4,
+  Model_M5 = Model_M5
+)
 
-# Individual cross-validation
-M0_ind <-simple_cross_validation(M0, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M1_ind <-simple_cross_validation(M1, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M3_ind <-simple_cross_validation(M3, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M4_ind <-simple_cross_validation(M4, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
-M5_ind <-simple_cross_validation(M5, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
+results <- list()
+for (model_name in names(models)) {
+  results[[model_name]] <- cross_validation_fixed(models[[model_name]], big_set, grouping = group_var)
+  # Print progress
+  cat("Completed cross-validation for", model_name, "\n")
+}
+print(results)
 ```
 
 
