@@ -15,11 +15,13 @@ library(reshape2)
 library(lubridate)
 ```
 
+
 ### Import Dataset
 ```{r import_data, include=FALSE}
 SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
 ```
+
 
 ### Clean Data
 ```{r Clean data, include=FALSE}
@@ -47,6 +49,7 @@ View(selected)
 
 ```
 
+
 ### Baseline model M_0
 ```{r Baseline-model, include=FALSE}
 #Create baseline model
@@ -60,6 +63,7 @@ summary(Baseline_model_M0)
 par(mfrow = c(2, 2))
 plot(Baseline_model_M0)
 ```
+
 
 ### Correlation Plots
 ```{r Correlation-plots, include=FALSE}
@@ -226,6 +230,7 @@ plot(Model_M1)
 #'resulting model against this one.
 ```
 
+
 ### Plots of Gross demand against time
 ```{r demand-time models}
 # Convert Date column to Date format
@@ -316,6 +321,7 @@ ggplot(new_set_long_numeric, aes(x = value, y = Y)) +
 #(2025-2025)
 ```
 
+
 ### Model_3
 ```{r model3}
 M3 <- Y ~ Solar + week_type + season + Temp + year
@@ -329,6 +335,7 @@ par(mfrow = c(2,2))
 plot(Model_M3)
 ```
 
+
 ### Model_4
 ```{r model4}
 M4 <- Y ~ Solar + week_type + season + Temp + year + daily_avg + daily_var
@@ -336,6 +343,8 @@ Model_M4 <- lm(M4, data = big_set)
 
 summary(Model_M4)
 ```
+
+
 ### Model 5
 ```{r model5}
 big_set$year_d = abs((big_set$year)-2005)
