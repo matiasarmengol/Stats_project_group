@@ -9,7 +9,8 @@
 cross_validation <- function(lm, data,
                              date_var = "Date",
                              grouping = "Monthly",
-                             metrics = c("rmse", "mae", "mape", "r2", "adj_r2")){
+                             metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
+                             k = FALSE){
   ## Validation of inputs
   if (!inherits(lm, "lm")){
     stop("Model must be a linear model (lm) object")
@@ -36,8 +37,16 @@ cross_validation <- function(lm, data,
       ifelse(wday(data[[date_var]]) %in% c(1, 7), "Weekend", "Weekday"),
       levels = c("Weekday", "Weekend")
     )
-  } else{
-    stop(paste("Invalid grouping. Valid options are: Month, Weekend"))
+  } else if (grouping == "k-fold"){
+    tryCatch({
+      reindex_data <- data[sample(nrow(data)), ]
+      data$group <- cut(seq(1, nrow(data)), breaks = k, labels = FALSE)
+    }, error = function(e){
+      warning(paste("Error in k-fold cross validation. Select a k:", e$message))
+    })
+    
+    } else{
+    stop(paste("Invalid grouping. Valid options are: Month, Weekend, k-fold"))
   }
   
   
@@ -125,33 +134,53 @@ cross_validation <- function(lm, data,
   overall_predictions <- c()
   
   for (grp in unique_groups) {
-    # Split data into training (all other groups) and testing (current group)
+    # Split data
     train_data <- data[data$group != grp, ]
     test_data <- data[data$group == grp, ]
     
-    # Check if we have enough data in both sets
+    # Check data size
     if (nrow(train_data) < 10 || nrow(test_data) < 5) {
       warning(paste("Insufficient data for group:", grp))
       next
     }
     
-    # Refit model on training data
     tryCatch({
-      cv_model <- update(lm, data = train_data)
+      # Create a new model that drops problematic factor variables
+      model_formula <- formula(lm)
+      
+      # Remove factor variables that might cause issues
+      vars_to_remove <- c()
+      if (grouping == "Month") {
+        # If cross-validating by month, remove season (highly collinear with month)
+        if ("season" %in% factor_vars) {
+          vars_to_remove <- c(vars_to_remove, "season")
+        }
+      } else if (grouping == "Weekend") {
+        # If cross-validating by weekend, remove is_weekend
+        if ("is_weekend" %in% factor_vars) {
+          vars_to_remove <- c(vars_to_remove, "is_weekend")
+        }
+      }
+      
+      # Remove problematic variables from formula
+      if (length(vars_to_remove) > 0) {
+        for (var in vars_to_remove) {
+          model_formula <- update(model_formula, paste0(". ~ . - ", var))
+        }
+      }
+      
+      # Fit model on training data with modified formula
+      cv_model <- lm(model_formula, data = train_data)
       
       # Predict on test data
       predictions <- predict(cv_model, newdata = test_data)
-      
-      # Extract the response variable from the test data
-      # Get the response variable name from the model formula
-      response_var <- all.vars(formula(lm))[1]
       actuals <- test_data[[response_var]]
       
-      # Store predictions for overall metrics
+      # Store results
       overall_actuals <- c(overall_actuals, actuals)
       overall_predictions <- c(overall_predictions, predictions)
       
-      # Calculate metrics for this group
+      # Calculate metrics
       group_metrics <- calculate_metrics(actuals, predictions, model = cv_model)
       group_results[[as.character(grp)]] <- group_metrics
       
@@ -196,11 +225,6 @@ cross_validation <- function(lm, data,
 
 
 
-
-
-
-library(dplyr)
-library(caret)  # For R2 and adjusted R2
 
 # Function for simple cross-validation
 simple_cross_validation <- function(lm_formula, data, 
