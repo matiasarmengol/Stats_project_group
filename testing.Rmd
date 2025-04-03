@@ -378,5 +378,9 @@ big_set$year_d = abs((big_set$year)-2005)
 Model_M5 <- lm(Y ~ Solar + week_type + season + year_d + daily_avg + daily_var, data = big_set)
 
 summary(Model_M5)
+
+simple_cross_validation(Y ~ Solar + week_type + season + year_d + daily_avg + daily_var, big_set, 
+                                    metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
+                                    fold_n = 5)
 ```
 

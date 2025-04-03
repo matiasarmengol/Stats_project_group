@@ -193,3 +193,61 @@ cross_validation <- function(lm, data,
   
   return(metrics_df)
 }
+
+
+
+
+
+
+library(dplyr)
+library(caret)  # For R2 and adjusted R2
+
+# Function for simple cross-validation
+simple_cross_validation <- function(lm_formula, data, 
+                                    metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
+                                    fold_n = 5) {
+  
+  # Shuffle data and create folds
+  set.seed(123)  # Ensure reproducibility
+  data <- data[sample(nrow(data)), ]
+  folds <- cut(seq(1, nrow(data)), breaks = fold_n, labels = FALSE)
+  
+  # Initialize metric storage
+  results <- list(rmse = c(), mae = c(), mape = c(), r2 = c(), adj_r2 = c())
+  
+  for (i in 1:fold_n) {
+    # Split into training and validation sets
+    test_idx <- which(folds == i, arr.ind = TRUE)
+    test_data <- data[test_idx, ]
+    train_data <- data[-test_idx, ]
+    
+    # Train model
+    model <- lm(lm_formula, data = train_data)
+    
+    # Predictions
+    preds <- predict(model, newdata = test_data)
+    actuals <- test_data[[all.vars(lm_formula)[1]]]  # Get response variable
+    
+    # Compute metrics
+    if ("rmse" %in% metrics) {
+      results$rmse <- c(results$rmse, sqrt(mean((preds - actuals)^2)))
+    }
+    if ("mae" %in% metrics) {
+      results$mae <- c(results$mae, mean(abs(preds - actuals)))
+    }
+    if ("mape" %in% metrics) {
+      results$mape <- c(results$mape, mean(abs((preds - actuals) / actuals)) * 100)
+    }
+    if ("r2" %in% metrics) {
+      results$r2 <- c(results$r2, cor(preds, actuals)^2)
+    }
+    if ("adj_r2" %in% metrics) {
+      results$adj_r2 <- c(results$adj_r2, summary(model)$adj.r.squared)
+    }
+  }
+  
+  # Compute the average for each metric
+  avg_results <- sapply(results, mean)
+  
+  return(avg_results)
+}
