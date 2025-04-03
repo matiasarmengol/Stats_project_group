@@ -50,7 +50,8 @@ View(selected)
 ### Baseline model M_0
 ```{r Baseline-model, include=FALSE}
 #Create baseline model
-Baseline_model_M0 <- lm(Y ~ Wind + Solar + Temp + Day_Index + Month_Index, data = selected)
+M0 <- Y ~ Wind + Solar + Temp + Day_Index + Month_Index
+Baseline_model_M0 <- lm(M0, data = selected)
 
 # Display model summary
 summary(Baseline_model_M0)
@@ -184,21 +185,6 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
        x = "Day of Week (cos transform)", y = "Gross Demand")
 ```
 
-### Cross Validation
-```{r Cross-Validation}
-source("code.r")
-
-# Check if the function was properly loaded
-
-if(exists("cross_validation")){
-  cat("Successfully imported cross_validation() function \n")
-} else {
-  cat("Failed to import cross_validation() function \n")
-}
-
-M0_res <- cross_validation(Baseline_model_M0, selected, grouping="Weekend")
-print(M0_res)
-```
 
 ### Model_1
 ```{r M1, include=FALSE}
@@ -207,7 +193,8 @@ print(M0_res)
 #variables here to see if it better fits the data.
 
 #initialize M1
-Model_M1 <- lm(Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month, data = selected)
+M1 <- Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month
+Model_M1 <- lm(M1, data = selected)
 
 #summarize
 summary(Model_M1)
@@ -275,7 +262,7 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
   geom_point(color = "red") +
   labs(title = "Yearly Average Gross Demand vs. Year",
        x = "Year", y = "Average Gross Demand (MW)") +
-  theme_minimal()0
+  theme_minimal()
 ```
 
 
@@ -331,8 +318,8 @@ ggplot(new_set_long_numeric, aes(x = value, y = Y)) +
 
 ### Model_3
 ```{r model3}
-
-Model_M3 <- lm(Y ~ Solar + week_type + season + Temp + year, data = selected)
+M3 <- Y ~ Solar + week_type + season + Temp + year
+Model_M3 <- lm(M3, data = selected)
 
 #summarize
 summary(Model_M3)
@@ -340,27 +327,49 @@ summary(Model_M3)
 #diagnostic plots
 par(mfrow = c(2,2))
 plot(Model_M3)
-
-M3_res <- cross_validation(Model_M3, selected, grouping="Month")
-print(M3_res)
-
 ```
 
 ### Model_4
 ```{r model4}
-Model_M4 <- lm(Y ~ Solar + week_type + season + Temp + year + daily_avg + daily_var, data = big_set)
+M4 <- Y ~ Solar + week_type + season + Temp + year + daily_avg + daily_var
+Model_M4 <- lm(M4, data = big_set)
 
 summary(Model_M4)
-
 ```
+### Model 5
+```{r model5}
+big_set$year_d = abs((big_set$year)-2005)
+M5 <- Y ~ Solar + week_type + season + year_d + daily_avg + daily_var
+Model_M5 <- lm(Y ~ Solar + week_type + season + year_d + daily_avg + daily_var, data = big_set)
+
+summary(Model_M5)
+```
+
 
 ### Cross-validation for each model
 ```{r model-val}
+source("code.r")
+
+# Check if the function was properly loaded
+if(exists("cross_validation")){
+  cat("Successfully imported cross_validation() function \n")
+} else {
+  cat("Failed to import cross_validation() function \n")
+}
+
+# Group cross-validation
 group_var = "Month"
 M0_res <- cross_validation(Baseline_model_M0, selected, grouping=group_var)
 M1_res <- cross_validation(Model_M1, selected, grouping=group_var)
 M3_res <- cross_validation(Model_M3, selected, grouping = group_var)
 M4_res <- cross_validation(Model_M4, selected, grouping = group_var)
+
+# Individual cross-validation
+M0_ind <-simple_cross_validation(M0, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
+M1_ind <-simple_cross_validation(M1, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
+M3_ind <-simple_cross_validation(M3, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
+M4_ind <-simple_cross_validation(M4, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
+M5_ind <-simple_cross_validation(M5, big_set, metrics = c("rmse", "mae", "mape", "r2", "adj_r2"), fold_n = 5)
 ```
 
 
@@ -373,14 +382,4 @@ winter13to14 <- SCS_demand_modelling |>
 
 ```
 
-```{r model5}
-big_set$year_d = abs((big_set$year)-2005)
-Model_M5 <- lm(Y ~ Solar + week_type + season + year_d + daily_avg + daily_var, data = big_set)
-
-summary(Model_M5)
-
-simple_cross_validation(Y ~ Solar + week_type + season + year_d + daily_avg + daily_var, big_set, 
-                                    metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
-                                    fold_n = 5)
-```
 
