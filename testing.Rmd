@@ -275,7 +275,7 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
   geom_point(color = "red") +
   labs(title = "Yearly Average Gross Demand vs. Year",
        x = "Year", y = "Average Gross Demand (MW)") +
-  theme_minimal()
+  theme_minimal()0
 ```
 
 
@@ -373,4 +373,10 @@ winter13to14 <- SCS_demand_modelling |>
 
 ```
 
+```{r model5}
+big_set$year_d = abs((big_set$year)-2005)
+Model_M5 <- lm(Y ~ Solar + week_type + season + year_d + daily_avg + daily_var, data = big_set)
+
+summary(Model_M5)
+```
 
