@@ -322,6 +322,7 @@ ggplot(new_set_long, aes(x = value, y = Y)) +
 
 #RIP M2 ye were never created
 #(2025-2025)
+#This is the cell that causes an error
 ```
 
 ### Model_3
