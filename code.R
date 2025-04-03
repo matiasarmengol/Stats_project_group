@@ -37,7 +37,7 @@ cross_validation <- function(lm, data,
       levels = c("Weekday", "Weekend")
     )
   } else{
-    stop(paste("Invalid grouping. Valid options are: Month, Weekend"))
+    stop(paste("Invalid grouping. Valid options are: Month, Weekend, K-fold"))
   }
   
   
