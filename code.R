@@ -2,7 +2,12 @@ cross_validation_fixed <- function(lm, data,
                                    date_var = "Date",
                                    grouping = "Month",
                                    metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
-                                   k = FALSE){
+                                   k = FALSE,
+                                   validation_type = FALSE){
+  
+  require(lubridate)
+  require(caret)
+  
   ## Validation of inputs
   if (!inherits(lm, "lm")){
     stop("Model must be a linear model (lm) object")
@@ -44,11 +49,21 @@ cross_validation_fixed <- function(lm, data,
     }, error = function(e){
       warning(paste("Error in k-fold cross validation. Select a k:", e$message))
     })
-    
   } else{
     stop(paste("Invalid grouping. Valid options are: Month, Weekend, k-fold"))
   }
   
+  if (!validation_type == FALSE){
+    if (validation_type == "Month"){
+      
+    } else if (validation_type == "Weekend") {
+      
+    } else if (validation_type == "Year"){
+      
+    } else {
+      stop(paste("Error in validation type: Valid options are: Month, Weekend, Year"))
+    }
+  }
   # Helper function to get number of predictors from a model
   get_num_predictors <- function(model) {
     # Get total number of coefficients (including intercept if present)
@@ -160,7 +175,7 @@ cross_validation_fixed <- function(lm, data,
       } else if (grouping == "Weekend") {
         # If cross-validating by weekend, remove is_weekend
         if ("is_weekend" %in% factor_vars) {
-          vars_to_remove <- c(vars_to_remove, "is_weekend")
+          vars_to_remove <- c(vars_to_remove, "week_type")
         }
       }
       

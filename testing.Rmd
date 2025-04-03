@@ -366,7 +366,7 @@ if(exists("cross_validation")){
   cat("Failed to import cross_validation() function \n")
 }
 
-group_var = "Month"
+group_var = "k-fold"
 k = 5
 models <- list(
   Model_M0 = Model_M0,
@@ -378,12 +378,27 @@ models <- list(
 
 results <- list()
 for (model_name in names(models)) {
-  results[[model_name]] <- cross_validation_fixed(models[[model_name]], big_set, grouping = group_var)
+  results[[model_name]] <- cross_validation_fixed(models[[model_name]], big_set, grouping = group_var, k=k)
   # Print progress
   cat("Completed cross-validation for", model_name, "\n")
 }
 ```
+```{r modular-cross-validation}
+source("code_modular.R")
 
+group_var = "k-fold"
+k = 5
+models <- list(
+  Model_M0 = Model_M0,
+  Model_M1 = Model_M1,
+  Model_M3 = Model_M3,
+  Model_M4 = Model_M4,
+  Model_M5 = Model_M5
+)
+
+results <- cross_validate_models(models = models, data = big_set)
+
+```
 
 ### Having A Look At Q4
 ```{r Q4}
