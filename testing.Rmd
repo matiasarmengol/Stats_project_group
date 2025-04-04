@@ -374,8 +374,9 @@ for (model_name in names(models)) {
   # Print progress
   cat("Completed cross-validation for", model_name, "\n")
 }
-print(results)
+View(results)
 ```
+### New modular cross-validation for each model
 ```{r modular-cross-validation}
 source("code_modular.R")
 
@@ -389,9 +390,15 @@ models <- list(
   Model_M5 = Model_M5
 )
 
-results <- cross_validate_models(models = models, data = big_set)
+results_M0 = (cross_validate(Model_M0, big_set, grouping = "k-fold", analyze_by = "Month"))
+results_M1 = (cross_validate(Model_M1, big_set, grouping = "k-fold", analyze_by = "Month"))
+results_M3 = (cross_validate(Model_M3, big_set, grouping = "k-fold", analyze_by = "Month"))
+results_M4 = (cross_validate(Model_M4, big_set, grouping = "k-fold", analyze_by = "Month"))
+results_M5 = (cross_validate(Model_M5, big_set, grouping = "k-fold", analyze_by = "Month"))
 
+View(results_M5)
 ```
+
 
 ### Having A Look At Q4
 ```{r Q4}
