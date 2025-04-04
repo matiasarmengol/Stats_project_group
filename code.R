@@ -252,3 +252,62 @@ cross_validation_fixed <- function(lm, data,
   
   return(metrics_df)
 }
+
+
+
+cross_validation_simple <- function(lm_formula, data,
+                                    grouping = "Month",
+                                    metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
+                                    k = 5){
+  
+  # Shuffle data
+  data <- data[sample(nrow(data)), ]
+  
+  # Create k folds
+  folds <- cut(seq(1, nrow(data)), breaks = k, labels = FALSE)
+  
+  # Choose grouping variable
+  group_var <- switch(grouping,
+                      "Month" = "Month_Index",
+                      "Day" = "Day_Index",
+                      "Year" = "year",
+                      stop("Invalid grouping option"))
+  
+  # Initialize list to store results
+  results_list <- list()
+  
+  for (i in 1:k) {
+    # Split into training and validation sets
+    test_idx <- which(folds == i, arr.ind = TRUE)
+    train_data <- data[test_idx, ]
+    validation_data <- data[-test_idx, ]
+    
+    # Train model
+    model <- lm(lm_formula, data = train_data)
+    
+    # Compute predictions BEFORE summarizing
+    validation_data <- validation_data %>%
+      mutate(pred = predict(model, newdata = validation_data))
+    
+    # Group and compute metrics
+    grouped_results <- validation_data %>%
+      group_by(!!sym(group_var)) %>%
+      summarise(
+        rmse = if ("rmse" %in% metrics) sqrt(mean((pred - Y)^2)) else NA,
+        mae = if ("mae" %in% metrics) mean(abs(pred - Y)) else NA,
+        mape = if ("mape" %in% metrics) mean(abs((pred - Y) / Y)) * 100 else NA,
+        r2 = if ("r2" %in% metrics) ifelse(n() > 1, cor(pred, Y)^2, NA) else NA,
+        adj_r2 = if ("adj_r2" %in% metrics) summary(model)$adj.r.squared else NA
+      )
+    
+    # Store results
+    results_list[[i]] <- grouped_results
+  }
+  
+  # Combine results from all folds and compute average metrics
+  final_results <- bind_rows(results_list) %>%
+    group_by(!!sym(group_var)) %>%
+    summarise(across(everything(), mean, na.rm = TRUE))
+  
+  return(final_results)
+}
