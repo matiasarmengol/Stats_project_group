@@ -9,12 +9,12 @@ compare_winter <- function(model, data, other_year) {
   
   #obtain the actual maximum gross demand from the 2013/14 winter
   control_set <- data |> 
-    filter((year == "2013" & monthindex %in% c(10, 11)) | (year == "2014" & monthindex %in% c(0, 1, 2)))
-  control_max <- max(control_set$demand_gross)
+    filter((year == "2013" & Month_Index %in% c(10, 11)) | (year == "2014" & Month_Index %in% c(0, 1, 2)))
+  control_max <- max(control_set$Y)
   
   #create our specified set to predict on
   other_set <- data |> 
-    filter((year == as.character(other_year) & monthindex %in% c(10, 11)) | (year == as.character(as.numeric(other_year) + 1) & monthindex %in% c(0, 1, 2))) |> 
+    filter((year == as.character(other_year) & Month_Index %in% c(10, 11)) | (year == as.character(as.numeric(other_year) + 1) & Month_Index %in% c(0, 1, 2))) |> 
     mutate(
       year = case_when(
         year == as.character(other_year) ~ 2013,
@@ -24,6 +24,7 @@ compare_winter <- function(model, data, other_year) {
     )
   
   #predict the demand based on our newly defined set and extract the maximum
+  print(head(other_set)) # debugging
   prediction <- predict(model, data = other_set)
   max_predicted <- max(prediction, na.rm = TRUE)
   

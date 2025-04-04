@@ -410,7 +410,7 @@ source("code_modular.R")
 years <- 1991:2012
 
 comparisons <- lapply(years, function(year) {
-  compare_winter(Model_M5, SCS_demand_modelling, year)
+  compare_winter(Model_M5, big_set, year)
 })
 
 comparisons_df <- data.frame(
@@ -420,6 +420,10 @@ comparisons_df <- data.frame(
 )
 
 print(comparisons_df)
+
+#print(compare_winter(Model_M5, SCS_demand_modelling, 1995))
+#print(compare_winter(Model_M5, SCS_demand_modelling, 1997))
+#print(compare_winter(Model_M5, SCS_demand_modelling, 2002))
   
 ```
 
