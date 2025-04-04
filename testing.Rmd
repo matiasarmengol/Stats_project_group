@@ -410,11 +410,11 @@ compare_winter <- function(model, data, other_year) {
   
   #create our specified set to train on
   other_set <- data |> 
-    filter((year == as.character(other_year) & monthindex %in% c(10, 11)) | (year = as.character(as.numeric(other_year) + 1) & monthindex %in% c(0, 1, 2))) |> 
+    filter((year == as.character(other_year) & monthindex %in% c(10, 11)) | (year == as.character(as.numeric(other_year) + 1) & monthindex %in% c(0, 1, 2))) |> 
     mutate(
       year = case_when(
-        year == as.character(other_year) ~ "2013",
-        year == as.character(as.numeric(other_year) + 1) ~ "2014",
+        year == as.character(other_year) ~ 2013,
+        year == as.character(as.numeric(other_year) + 1) ~ 2014,
         TRUE ~ year #don't break if it's not one of the above
       )
     )
@@ -425,7 +425,7 @@ compare_winter <- function(model, data, other_year) {
   return(list(control_max = control_max, max_predicted = max_predicted))
 }
   
-  
+comp <- compare_winter(Model_M5, SCS_demand_modelling, "2000")  
   
 ```
 
