@@ -28,7 +28,7 @@ SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
 #CLEANING - prep for M0 model
 
 #select only involved covariates and output variable
-vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex', 'year')
+vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex', 'year', 'TE')
 selected <- select(SCS_demand_modelling, vars)
 
 selected <- selected |> 
@@ -340,8 +340,9 @@ summary(Model_M4)
 ### Model_5
 ```{r model5}
 big_set$year_d = abs((big_set$year)-2005)
-M5 <- Y ~ Solar + week_type + season + year_d + daily_avg + daily_var
-Model_M5 <- lm(Y ~ Solar + week_type + season + year_d + daily_avg + daily_var, data = big_set)
+
+M5 <- Y ~ Solar + Wind + week_type + season + year_d + Temp + TE + daily_var
+Model_M5 <- lm(M5, data = big_set)
 
 summary(Model_M5)
 ```
@@ -376,6 +377,8 @@ for (model_name in names(models)) {
 }
 View(results)
 ```
+
+
 ### New modular cross-validation for each model
 ```{r modular-cross-validation}
 source("code_modular.R")
