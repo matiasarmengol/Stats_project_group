@@ -19,7 +19,7 @@ compare_winter <- function(model, data, other_year) {
       year = case_when(
         year == as.character(other_year) ~ 2013,
         year == as.character(as.numeric(other_year) + 1) ~ 2014,
-        TRUE ~ year #don't break if it's not one of the above
+        #TRUE ~ year #don't break if it's not one of the above
       )
     )
   
