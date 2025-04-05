@@ -42,7 +42,16 @@ source("code.R")
 ```{r Introduction instructions}
 #This section provides a brief introduction to the task and the datasets used. The introduction is intended to be #understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader #of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak #electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
 ```
-
+In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; SCS_demand_modelling.csv and SCS_hourly_temp. Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains hourly temperature data. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
+$$ Y_i = \sum_{j=1}^m \beta_jX_j + \epsilon_i \text{, }\text{ }\text{ }\text{ } \epsilon_i \sim \mathcal{N}(0, \sigma^2),$$
+where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error(RMSE), given by:
+$$RMSE = \sqrt{\dfrac{1}{n}\sum_{i=1}^n (\hat{y_i} - y_i)^2},$$
+where y_i is is the observed gross demand at day $i$, and $\hat{y_i}$ is the gross demand predicted by the model at day $i$, given regression parameters $\beta_1, \cdots, \beta_m$, that is:
+$$\hat{y_i} = \sum_{j=1}^m \beta_jx_j.$$
+Choosing the regression coefficients this way ensures that the average distance between the observed gross demand and the predicted gross demand is kept as low as possible, thus reducing the uncertainty in its predictions. The main challenge of this investigation was the choice of covariates to use, thus we tested several models, with different covariates. To compare their performance, we employed a measure of the portion of total variability explained by the model, $R^2$, defined as follows:
+$$R^2 = 1 - \dfrac{\sum_{i=1}^n(y_i - \hat{y_i})^2}{\sum_{i=1}^n(y_i - \bar{y})^2},$$
+where $y_i$ and $\hat{y_i}$ are as defined previously, and $\hat{y}$ is the mean of all observations of the gross demand.
+We then constructed a $k$-fold cross validation scheme, to assess the performance of different models on unseen data. The cross validation scheme works by splitting the observations into $k$ groups of equal size, and using one of the groups to train the model, that is to determine the regression coefficients. With the coefficients fixed, the remaining $k-1$ groups are used to test the model, computing the value of $R^2$. The process is repeated $k$ times, training the model with a different group of each time, and computing the value of $R^% using the remaining groups.
 
 # Data description and exploratory analysis
 ```{r Section 2 instructions}

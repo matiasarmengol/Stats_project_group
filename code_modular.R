@@ -441,8 +441,6 @@ analyze_time_performance <- function(results, metric = "r2",
   
   # Get metric column
   metric_col <- toupper(metric)
-  if (!metric_col %in% names(results$time_analysis[[dimension]])) {
-    stop(paste("Metric", metric, "not found in results"))
   }
   
   # Extract metric values
@@ -533,7 +531,7 @@ compare_models <- function(model_results, metric = "r2", dimension = "Month") {
 cross_validate_models <- function(models, data,
                                   date_var = "Date",
                                   grouping = "k-fold",
-                                  metrics = c("rmse", "mae", "mape", "r2"),
+                                  metrics = c("rmse", "mae", "mape", "r2", "adj_r2"),
                                   k = 5,
                                   analyze_by = c("Month", "Weekend", "Year")) {
   #' @title Run cross-validation for multiple models

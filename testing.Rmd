@@ -362,7 +362,7 @@ if(exists("cross_validation")){
 group_var = "k-fold"
 k = 5
 models <- list(
-  Model_M0 = Model_M0,
+  Model_M0 c Model_M0,
   Model_M1 = Model_M1,
   Model_M3 = Model_M3,
   Model_M4 = Model_M4,
@@ -399,7 +399,7 @@ results_M3 = (cross_validate(Model_M3, big_set, grouping = "k-fold", analyze_by 
 results_M4 = (cross_validate(Model_M4, big_set, grouping = "k-fold", analyze_by = "Month"))
 results_M5 = (cross_validate(Model_M5, big_set, grouping = "k-fold", analyze_by = "Month"))
 
-View(results_M5)
+results_all <- cross_validate_models(models, big_set)
 ```
 
 
@@ -456,4 +456,11 @@ ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
 
 ```
 
+```{r Fixing_Adj_R2 }
+source("code_modular.R")
+
+models <- list(Model_M0, Model_M5)
+
+cross_validate_models(models)
+```
 
