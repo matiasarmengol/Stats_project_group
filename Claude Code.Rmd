@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(lubridate)
 library(ggplot2)
-
+# This is a test commment
 # Read the datasets
 demand_data <- read.csv("Project02/SCS_demand_modelling.csv")
 temp_data <- read.csv("Project02/SCS_hourly_temp.csv")
