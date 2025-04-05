@@ -399,7 +399,7 @@ results_M3 = (cross_validate(Model_M3, big_set, grouping = "k-fold", analyze_by 
 results_M4 = (cross_validate(Model_M4, big_set, grouping = "k-fold", analyze_by = "Month"))
 results_M5 = (cross_validate(Model_M5, big_set, grouping = "k-fold", analyze_by = "Month"))
 
-View(results_M5)
+results_all <- cross_validate_models(models, big_set)
 ```
 
 
