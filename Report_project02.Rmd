@@ -39,38 +39,48 @@ source("code.R")
 
 
 # Introduction
+```{r Introduction instructions}
+#This section provides a brief introduction to the task and the datasets used. The introduction is intended to be #understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader #of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak #electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
+```
 
-This section provides a brief introduction to the task and the datasets used. The introduction is intended to be understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
 
 # Data description and exploratory analysis
+```{r Section 2 instructions}
+#Emphasis should be placed on the data features that are relevant for the subsequent modeling. Include visualizations that #help illustrate key patterns or relationships. All plots must also be described in the write up. Think carefully about #whether each plot needs to be included in your final draft. Your report should include figures and tables but they should #be as focused and impactful as possible.
 
-Emphasis should be placed on the data features that are relevant for the subsequent modeling. Include visualizations that help illustrate key patterns or relationships. All plots must also be described in the write up. Think carefully about whether each plot needs to be included in your final draft. Your report should include figures and tables but they should be as focused and impactful as possible.
-
-Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
+#Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional #dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
+```
 
 ## Data visualization
 ## Baseline Model
 ## New variables
 
+
 # Model fitting and cross-validation results
+```{r Section 3 intsructions}
+#In this section you should detail your choice of model and describe the process used to refine and fit the model. You are #encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. #For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions #of these models beyond why they were rejected. This section should mention the methods explored and why they were #rejected, but most of your effort should go into describing the model you are using and your process for tuning and #validating it.
 
-In this section you should detail your choice of model and describe the process used to refine and fit the model. You are encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions of these models beyond why they were rejected. This section should mention the methods explored and why they were rejected, but most of your effort should go into describing the model you are using and your process for tuning and validating it.
-
-Provide implementation details and include results from cross-validation or other model evaluation techniques, highlighting improvements and any trade-offs.
+#Provide implementation details and include results from cross-validation or other model evaluation techniques, #highlighting improvements and any trade-offs.
+```
 
 ## Model overview
 ## Model performance
 ## Compare winter
 
+
 # Conclusion
+```{r section 4 instructions}
+#Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and #practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or #assumptions that should be considered when applying the model in practice.
 
-Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or assumptions that should be considered when applying the model in practice.
+#Emphasize how your model can support NESO's long-term planning goals. If the model underperforms in some respects, provide #a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well #predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model #with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound #reasoning and transparency will be valued more than overclaiming results.
+```
 
-Emphasize how your model can support NESO's long-term planning goals. If the model underperforms in some respects, provide a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound reasoning and transparency will be valued more than overclaiming results.
 
 # Code Appendix
+```{r section 5 instructions}
+#Include here all the code used in your analysis. Ensure that the code is well-commented so it is easy to follow and reuse.
+```
 
-Include here all the code used in your analysis. Ensure that the code is well-commented so it is easy to follow and reuse.
 
 ```{r code=readLines("code.R"), eval=FALSE, echo=TRUE}
 # Do not change this code chunk
