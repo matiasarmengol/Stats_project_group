@@ -1,6 +1,6 @@
 ---
 title: "Modelling Peak Electricity Demand in Great Britain"
-author: "Group number, names of group members along with University usernames"
+author: "Group 47, Matias Armengol(s2286042), Fergus(s2185709), Adi(s2278709)"
 output:
   html_document:
     number_sections: no
@@ -48,14 +48,21 @@ Emphasis should be placed on the data features that are relevant for the subsequ
 
 Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
 
+## Data visualization
+## Baseline Model
+## New variables
+
 # Model fitting and cross-validation results
 
 In this section you should detail your choice of model and describe the process used to refine and fit the model. You are encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions of these models beyond why they were rejected. This section should mention the methods explored and why they were rejected, but most of your effort should go into describing the model you are using and your process for tuning and validating it.
 
 Provide implementation details and include results from cross-validation or other model evaluation techniques, highlighting improvements and any trade-offs.
 
+## Model overview
+## Model performance
+## Compare winter
 
-# Conslusion
+# Conclusion
 
 Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or assumptions that should be considered when applying the model in practice.
 
