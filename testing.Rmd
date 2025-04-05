@@ -419,12 +419,12 @@ comparisons_df <- data.frame(
   max_predicted = sapply(comparisons, function(x) x$max_predicted)
 )
 
-print(comparisons_df)
-
-#print(compare_winter(Model_M5, SCS_demand_modelling, 1995))
-#print(compare_winter(Model_M5, SCS_demand_modelling, 1997))
-#print(compare_winter(Model_M5, SCS_demand_modelling, 2002))
+ggplot(data = comparisons_df) +
+  geom_point(aes(x = other_year, y = max_predicted)) + 
+  geom_smooth(aes(x = other_year, y = max_predicted)) +
+  ggtitle("Predicted Max Demand If 2013/14 Had Another Winter's Weather")
   
+
 ```
 
 
