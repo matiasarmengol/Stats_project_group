@@ -1,6 +1,6 @@
 ---
 title: "Modelling Peak Electricity Demand in Great Britain"
-author: "Group number, names of group members along with University usernames"
+author: "Group 47, Matias Armengol(s2286042), Fergus(s2185709), Adi(s2278709)"
 output:
   html_document:
     number_sections: no
@@ -39,31 +39,58 @@ source("code.R")
 
 
 # Introduction
+```{r Introduction instructions}
+#This section provides a brief introduction to the task and the datasets used. The introduction is intended to be #understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader #of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak #electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
+```
+In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; SCS_demand_modelling.csv and SCS_hourly_temp. Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains hourly temperature data. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
+$$ Y_i = \sum_{j=1}^m \beta_jX_j + \epsilon_i \text{, }\text{ }\text{ }\text{ } \epsilon_i \sim \mathcal{N}(0, \sigma^2),$$
+where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error(RMSE), given by:
+$$RMSE = \sqrt{\dfrac{1}{n}\sum_{i=1}^n (\hat{y_i} - y_i)^2},$$
+where y_i is is the observed gross demand at day $i$, and $\hat{y_i}$ is the gross demand predicted by the model at day $i$, given regression parameters $\beta_1, \cdots, \beta_m$, that is:
+$$\hat{y_i} = \sum_{j=1}^m \beta_jx_j.$$
 
-This section provides a brief introduction to the task and the datasets used. The introduction is intended to be understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
 
 # Data description and exploratory analysis
+```{r Section 2 instructions}
+#Emphasis should be placed on the data features that are relevant for the subsequent modeling. Include visualizations that #help illustrate key patterns or relationships. All plots must also be described in the write up. Think carefully about #whether each plot needs to be included in your final draft. Your report should include figures and tables but they should #be as focused and impactful as possible.
 
-Emphasis should be placed on the data features that are relevant for the subsequent modeling. Include visualizations that help illustrate key patterns or relationships. All plots must also be described in the write up. Think carefully about whether each plot needs to be included in your final draft. Your report should include figures and tables but they should be as focused and impactful as possible.
+#Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional #dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
+```
 
-Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
+## Data visualization
+## Baseline Model
+## New variables
+
 
 # Model fitting and cross-validation results
+```{r Section 3 intsructions}
+#In this section you should detail your choice of model and describe the process used to refine and fit the model. You are #encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. #For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions #of these models beyond why they were rejected. This section should mention the methods explored and why they were #rejected, but most of your effort should go into describing the model you are using and your process for tuning and #validating it.
 
-In this section you should detail your choice of model and describe the process used to refine and fit the model. You are encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions of these models beyond why they were rejected. This section should mention the methods explored and why they were rejected, but most of your effort should go into describing the model you are using and your process for tuning and validating it.
+#Provide implementation details and include results from cross-validation or other model evaluation techniques, #highlighting improvements and any trade-offs.
+```
 
-Provide implementation details and include results from cross-validation or other model evaluation techniques, highlighting improvements and any trade-offs.
+## Model overview
+## Model performance
+
+## Compare winter
+We investigated the variation in maximum demand over the winter of 2013/14, with the weather conditions from previous winters.
+
+The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the year-dependent variables ('year_d, week_type') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
 
-# Conslusion
+# Conclusion
+```{r section 4 instructions}
+#Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and #practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or #assumptions that should be considered when applying the model in practice.
 
-Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or assumptions that should be considered when applying the model in practice.
+#Emphasize how your model can support NESO's long-term planning goals. If the model underperforms in some respects, provide #a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well #predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model #with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound #reasoning and transparency will be valued more than overclaiming results.
+```
 
-Emphasize how your model can support NESO's long-term planning goals. If the model underperforms in some respects, provide a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound reasoning and transparency will be valued more than overclaiming results.
 
 # Code Appendix
+```{r section 5 instructions}
+#Include here all the code used in your analysis. Ensure that the code is well-commented so it is easy to follow and reuse.
+```
 
-Include here all the code used in your analysis. Ensure that the code is well-commented so it is easy to follow and reuse.
 
 ```{r code=readLines("code.R"), eval=FALSE, echo=TRUE}
 # Do not change this code chunk
