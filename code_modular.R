@@ -441,8 +441,6 @@ analyze_time_performance <- function(results, metric = "r2",
   
   # Get metric column
   metric_col <- toupper(metric)
-  if (!metric_col %in% names(results$time_analysis[[dimension]])) {
-    stop(paste("Metric", metric, "not found in results"))
   }
   
   # Extract metric values
