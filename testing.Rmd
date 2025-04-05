@@ -419,18 +419,40 @@ comparisons_df <- data.frame(
   max_predicted = sapply(comparisons, function(x) x$max_predicted)
 )
 
-comparisons_df <- mutate(comparisons_df, diff = abs(control_max - max_predicted))
+comparisons_df <- mutate(comparisons_df, diff = (control_max - max_predicted))
 
-ggplot(data = comparisons_df) +
-  geom_point(aes(x = other_year, y = max_predicted)) + 
-  geom_smooth(aes(x = other_year, y = max_predicted)) +
-  ggtitle("Predicted Max Demand If 2013/14 Had Another Winter's Weather")
-
-ggplot(data = comparisons_df) +
-  geom_point(aes(x = other_year, y = diff)) + 
-  geom_smooth(aes(x = other_year, y = diff)) +
-  ggtitle("Predicted Difference If 2013/14 Had Another Winter's Weather")
+# ggplot(data = comparisons_df) +
+#   geom_point(aes(x = other_year, y = max_predicted)) + 
+#   geom_smooth(aes(x = other_year, y = max_predicted)) +
+#   ggtitle("Predicted Max Demand If 2013/14 Had Another Winter's Weather")
+# 
+# ggplot(data = comparisons_df) +
+#   geom_point(aes(x = other_year, y = diff)) + 
+#   geom_smooth(aes(x = other_year, y = diff)) +
+#   ggtitle("Predicted Difference If 2013/14 Had Another Winter's Weather")
   
+
+# Plot 1: Predicted Max Demand
+ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = TRUE, color = "red") + # Added loess smoothing and removed standard error
+  labs(
+    title = "Predicted Max Demand If 2013/14 Had Another Winter's Weather",
+    x = "Year Used for Weather Conditions",
+    y = "Predicted Max Demand"
+  ) +
+  theme_minimal()
+
+# Plot 2: Predicted Difference
+ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = TRUE, color = "blue") + # Added loess smoothing and removed standard error
+  labs(
+    title = "Predicted Difference in Max Demand If 2013/14 Had Another Winter's Weather",
+    x = "Year Used for Weather Conditions",
+    y = "Difference in Max Demand (Predicted - Actual)"
+  ) +
+  theme_minimal()
 
 ```
 
