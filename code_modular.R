@@ -19,13 +19,14 @@ compare_winter <- function(model, data, other_year) {
       year = case_when(
         year == as.character(other_year) ~ 2013,
         year == as.character(as.numeric(other_year) + 1) ~ 2014,
-        #TRUE ~ year #don't break if it's not one of the above
+        TRUE ~ year #don't break if it's not one of the above
       )
-    )
+    ) |> 
+    mutate(year_d = abs(as.numeric(year) - 2005))
   
   #predict the demand based on our newly defined set and extract the maximum
-  print(head(other_set)) # debugging
-  prediction <- predict(model, data = other_set)
+  #print(head(other_set)) # debugging
+  prediction <- predict(model, newdata = other_set)
   max_predicted <- max(prediction, na.rm = TRUE)
   
   return(list(control_max = control_max, max_predicted = max_predicted))
