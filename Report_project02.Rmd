@@ -42,7 +42,7 @@ source("code.R")
 ```{r Introduction instructions}
 #This section provides a brief introduction to the task and the datasets used. The introduction is intended to be #understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader #of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak #electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
 ```
-In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; SCS_demand_modelling.csv and SCS_hourly_temp. Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains hourly temperature data. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
+In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; SCS_demand_modelling.csv and SCS_hourly_temp. Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains the hourly population-weighted average temperature for each day. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
 $$ Y_i = \sum_{j=1}^m \beta_jX_j + \epsilon_i \text{, }\text{ }\text{ }\text{ } \epsilon_i \sim \mathcal{N}(0, \sigma^2),$$
 where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error(RMSE), given by:
 $$RMSE = \sqrt{\dfrac{1}{n}\sum_{i=1}^n (\hat{y_i} - y_i)^2},$$
@@ -60,10 +60,18 @@ We then constructed a $k$-fold cross validation scheme, to assess the performanc
 #Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional #dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
 ```
 
-## Data visualization
+## Data visualization and preprocessing
 ## Baseline Model
 ## New variables
-
+In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in figure (ADD REFERENCE) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "week_type", defined below:
+$$\text{week_type}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 & \text{if } i\text{ is a weekend day}\end{cases}.$$
+Similarly, we created another categorical variable, "season", defined as follows:
+$$\text{season}_i = \begin{cases} 0 & \text{if } i\text{ is in March} \\ 1 & \text{otherwise}\end{cases},$$
+as figure (ADD REFERENCE) shows that gross demand in March differs significantly from any other month. Figure (ADD REFERENCE) indicates that a linear relationship between gross demand and year is not suitable. As a result, we constructed a new variable instead, "year_d" to model the dependence of gross demand on the year, this was defined as follows:
+$$\text{year}_{d_i} = |\text{year}_i - 2005|.$$
+Finally, to capture the effects of the variability of the temperature in a given day, we defined the variable "daily_var", as displayed below:
+$$\text{daily_var}_i = \widehat{Var}(\text{temp}_i) = .$$
+This information was extracted from the "SCS_hourly_temp" dataset, and $ \widehat{Var}(\text{temp}_i)$ is the estimated variance of all hourly temperature measurements from day $i$. The use of this dataset provides further insight of the relationship between gross demand and temperature, allowing our model to predict the former more accurately than if we had used temperature alone.
 
 # Model fitting and cross-validation results
 ```{r Section 3 intsructions}

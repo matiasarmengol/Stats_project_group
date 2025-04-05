@@ -362,7 +362,7 @@ if(exists("cross_validation")){
 group_var = "k-fold"
 k = 5
 models <- list(
-  Model_M0 c Model_M0,
+  Model_M0 = Model_M0,
   Model_M1 = Model_M1,
   Model_M3 = Model_M3,
   Model_M4 = Model_M4,
