@@ -22,7 +22,10 @@ compare_winter <- function(model, data, other_year) {
         TRUE ~ year #don't break if it's not one of the above
       )
     ) |> 
-    mutate(year_d = abs(as.numeric(year) - 2005))
+    mutate(year_d = abs(as.numeric(year) - 2005)) |> 
+    mutate(week_type = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
+                              levels = c(0, 1), 
+                              labels = c("Weekend", "Weekday")))
   
   #predict the demand based on our newly defined set and extract the maximum
   #print(head(other_set)) # debugging

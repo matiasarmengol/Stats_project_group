@@ -65,7 +65,11 @@ source("code.R")
 
 ## Model overview
 ## Model performance
+
 ## Compare winter
+We investigated the variation in maximum demand over the winter of 2013/14, with the weather conditions from previous winters.
+
+The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the year-dependent variables ('year_d, week_type') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
 
 # Conclusion
