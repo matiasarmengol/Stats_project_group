@@ -213,14 +213,7 @@ cross_validate_model <- function(model, data,
     stop(paste("Date variable", date_var, "not found in the data"))
   }
   
-  # Ensure date column is Date type
-  if (!inherits(data[[date_var]], "Date")) {
-    tryCatch({
-      data[[date_var]] <- as.Date(data[[date_var]])
-    }, error = function(e) {
-      stop(paste("Failed to convert", date_var, "to Date type:", e$message))
-    })
-  }
+  
   
   # Create time grouping variables if they don't exist
   data_with_groups <- data

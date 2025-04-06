@@ -10,6 +10,15 @@ header-includes:
   - \newcommand{\bm}[1]{\boldsymbol{#1}}
   - \newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
 ---
+<style>
+.figure .caption {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  font-style: italic;
+  color: #555;
+}
+</style>
 
 ```{r setup, include=FALSE, echo=FALSE}
 # Modify this setup code chunk to set options
