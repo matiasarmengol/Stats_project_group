@@ -443,6 +443,8 @@ ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   ) +
   theme_minimal()
 
+mean(comparisons_df$diff)
+
 ```
 
 ```{r Fixing_Adj_R2 }
