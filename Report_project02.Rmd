@@ -211,6 +211,7 @@ ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
        x = "Temperature", y = "Gross Demand")
 
 ```
+
 A reasonable assumption would be to expect energy demand to decrease with temperature, as the energy required to heat homes is reduced. However, this plot sees a very weak negative correlation between the two. This implies that the variation in gross demand has very little dependency on temperature.
 
 However, through observation of the correlation matrix as well as comparison of model results with versus without the temperature variable, we have decided to keep it.
