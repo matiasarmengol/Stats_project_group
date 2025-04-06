@@ -528,24 +528,23 @@ variables does not seem appropriate.</p>
 <p>In light of the weaknesses of the baseline model, we have created new
 covariates from the dataset, by appropriate transformations of existing
 variables, in an attempt to better capture their relationship with gross
-demand. The relationship displayed in figure (ADD REFERENCE) suggests
-the need to make a distinction between weekends and weekdays. To do so,
-we created a categorical variable “is_weekday”, defined below: <span class="math display">\[\text{is_weekday}_i = \begin{cases} 1 &amp;
+demand. The relationship displayed in Figure (4) suggests the need to
+make a distinction between weekends and weekdays. To do so, we created a
+categorical variable “is_weekday”, defined below: <span class="math display">\[\text{is_weekday}_i = \begin{cases} 1 &amp;
 \text{if } i\text{ is a weekday} \\ 0 &amp; \text{if } i\text{ is a
 weekend day}\end{cases}.\]</span> Similarly, we created another
 categorical variable, “is_winter”, defined as follows: <span class="math display">\[\text{is_winter}_i = \begin{cases} 0 &amp;
 \text{if } i\text{ is in March} \\ 1 &amp;
-\text{otherwise}\end{cases},\]</span> as figure (ADD REFERENCE) shows
-that gross demand in March differs significantly from any other month.
-Figure (ADD REFERENCE) indicates that a linear relationship between
-gross demand and year is not suitable. As a result, we constructed a new
-variable instead, “year_d” to model the dependence of gross demand on
-the year, this was defined as follows: <span class="math display">\[\text{year}_{d_i} = |\text{year}_i -
-2005|.\]</span> Finally, to capture the effects of the variability of
-the temperature in a given day, we defined the variable “daily_var”, as
-displayed below: <span class="math display">\[\text{daily_var}_i =
-\widehat{Var}(\text{temp}_i) =
-\dfrac{1}{23}\sum_{j=1}^{24}(\text{temp}_{i,j} -
+\text{otherwise}\end{cases},\]</span> as Figure (3) shows that gross
+demand in March differs significantly from any other month. Figure (2)
+indicates that a linear relationship between gross demand and year is
+not suitable. As a result, we constructed a new variable instead,
+“year_d” to model the dependence of gross demand on the year, this was
+defined as follows: <span class="math display">\[\text{year}_{d_i} =
+|\text{year}_i - 2005|.\]</span> Finally, to capture the effects of the
+variability of the temperature in a given day, we defined the variable
+“daily_var”, as displayed below: <span class="math display">\[\text{daily_var}_i = \widehat{Var}(\text{temp}_i)
+= \dfrac{1}{23}\sum_{j=1}^{24}(\text{temp}_{i,j} -
 \overline{\text{temp}_i})^2 .\]</span> This information was extracted
 from the “SCS_hourly_temp” dataset, and <span class="math inline">\(\widehat{Var}(\text{temp}_i)\)</span> is the
 estimated variance of all hourly temperature measurements from day <span class="math inline">\(i\)</span>, <span class="math inline">\(\overline{\text{temp}_i}\)</span> is the average
@@ -581,8 +580,8 @@ with the main trade off being its increased complexity. To select this
 model, we have tested several variations including the use of different
 variables, or transformations of the variables. Although slightly better
 results were obtained for some models, for example by implementing a
-dependency on the cubic root of the temperature, justified by plot (ADD
-REFERENCE), they were ultimately discarded, as the slight improvement in
+dependency on the cubic root of the temperature, justified by Figure
+(5), they were ultimately discarded, as the slight improvement in
 prediction accuracy was not enough to justify the significant increase
 in model complexity.</p>
 </div>
