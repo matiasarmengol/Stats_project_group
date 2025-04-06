@@ -1,9 +1,9 @@
-val_data <- function(data){
+validate_data <- function(data){
   return (is.null(data)||length(data) == 0)
 }
 
 calculate_rmse <- function(true_vals, pred_vals){
-  rmse <- mean(abs(actual - predicted)^2, na.rm = TRUE)
+  rmse <- mean(abs(true_vals - pred_vals)^2, na.rm = TRUE)
   return(rmse)
 }
 
@@ -49,9 +49,9 @@ calculate_adj_r2 <- function(true_vals, pred_vals, model){
 }
 
 calculate_metrics <- function(actual, predicted, model = NULL, metrics = c("rmse", "r2", "adj_r2")){
-  if (val_data(actual)){
+  if (validate_data(actual)){
     true_vals <- actual
-  } else if (val_data(predicted)){
+  } else if (validate_data(predicted)){
     pred_vals <- predicted
   } else {
     warning("Empty or NULL data passed to calculate metrics")
@@ -74,7 +74,7 @@ calculate_metrics <- function(actual, predicted, model = NULL, metrics = c("rmse
 
 cross_validate <- function(model, data,
                             metrics = c("rmse", "r2", "adj_r2"),
-                            k = 5, analyse_by = c("Year", "Month", "Day")
+                            k = 5, analyse_by = c("Year", "Month", "Day"),
                             date_var = "Date"){
   # Input validation
   if(is.null(data) || nrow(data)==0){
@@ -175,7 +175,7 @@ cross_validate <- function(model, data,
     
     # Calculate overall metrics
     fold_metrics <- calculate_metrics(
-      actual = val_data$response, # Replace with actual response variable
+      actual = val_data$Y, # Replace with actual response variable
       predicted = predictions,
       model = fitted_model,
       metrics = metrics
@@ -190,7 +190,7 @@ cross_validate <- function(model, data,
     for (s in unique_strata) {
       strata_indices <- val_data$strata == s
       if (sum(strata_indices) > 0) {
-        strata_actuals <- val_data$response[strata_indices] # Replace with actual response variable
+        strata_actuals <- val_data$Y[strata_indices] # Replace with actual response variable
         strata_preds <- predictions[strata_indices]
         
         # Only calculate if we have enough data
