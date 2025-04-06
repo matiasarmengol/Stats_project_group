@@ -442,7 +442,6 @@ analyze_time_performance <- function(results, metric = "r2",
   # Get metric column
   metric_col <- toupper(metric)
   
-  
   # Extract metric values
   metrics_df <- results$time_analysis[[dimension]]
   

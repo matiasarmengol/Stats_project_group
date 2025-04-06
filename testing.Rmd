@@ -421,17 +421,6 @@ comparisons_df <- data.frame(
 
 comparisons_df <- mutate(comparisons_df, diff = (control_max - max_predicted))
 
-# ggplot(data = comparisons_df) +
-#   geom_point(aes(x = other_year, y = max_predicted)) + 
-#   geom_smooth(aes(x = other_year, y = max_predicted)) +
-#   ggtitle("Predicted Max Demand If 2013/14 Had Another Winter's Weather")
-# 
-# ggplot(data = comparisons_df) +
-#   geom_point(aes(x = other_year, y = diff)) + 
-#   geom_smooth(aes(x = other_year, y = diff)) +
-#   ggtitle("Predicted Difference If 2013/14 Had Another Winter's Weather")
-  
-
 # Plot 1: Predicted Max Demand
 ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
   geom_point() +
