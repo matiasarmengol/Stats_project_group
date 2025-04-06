@@ -267,6 +267,8 @@ Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 
 
 ```{r compare_metrics, echo=FALSE}
 
+
+#make a dataframe from the output of the cro
 overall_metrics <- data.frame(
   metric = c("RMSE", "R²", "Adjusted R²"),
   M0 = c(4824.76, 0.066, 0.060),
@@ -371,7 +373,7 @@ We investigated the variation in maximum demand over the winter of 2013/14, with
 The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the year-dependent variables ('year_d, week_type') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
   
-```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: '}
+```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: How Maximum Demand is Projected to Vary With Weather Conditions From Previous Years'}
 source("code_modular.R")
 
 years <- 1991:2012
@@ -400,7 +402,7 @@ ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
   theme_minimal()
 ```
 <div style="height: 10px;"></div>
-```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 6: '}
+```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 6: How the Difference Between Projected Maximum Demand and Observed Maximum Demand Varies With Weather Conditions From Previous Years'}
 # Plot 2: Predicted Difference
 ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   geom_point() +
