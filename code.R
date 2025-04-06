@@ -95,7 +95,8 @@ calculate_metrics <- function(actual, predicted, model = NULL, metrics = c("rmse
 
 k_fold_cross_validate <- function(model, data,
                                   metrics = c("rmse", "r2", "adj_r2"),
-                                  k = 5){
+                                  k = 5,
+                                  strat_vars = NULL){
   if(validate_data(data)){
     warning("Empty or NULL data passed to k-fold cross validation")
     return(NULL)
@@ -117,10 +118,25 @@ k_fold_cross_validate <- function(model, data,
     return(NULL)
   }
 
-  # Shuffle and split into k folds
-  shuffled_indices <- sample(nrow(data))
-  data <- data[shuffled_indices, ]
-  fold_indices <- cut(1:nrow(data), breaks = k, labels = FALSE)
+  #Shuffle and split data
+  if(!is.null(strat_vars)){
+    missing_vars <- strat_vars[!strat_vars %in% colnames(data)]
+    if (length(missing_vars) > 0){
+      warning(paste("Stratification variables not found in data", paste(missing_vars, collapse= ', ')))
+      return(NULL)
+    }
+
+    #Create combined stratificted factor
+    strata_combination <- do.call(paste, c(data[strata_vars], sep = "_"))
+    
+    # Split by strata
+    fold_indices <- createFolds(strata_combination, k = k, list = FALSE)
+  } else{
+    # Split into k folds
+    shuffled_indices <- sample(nrow(data))
+    data <- data[shuffled_indices, ]
+    fold_indices <- cut(1:nrow(data), breaks = k, labels = FALSE)
+  }
 
   # Set up for results
   fold_metrics <- list()
@@ -187,10 +203,9 @@ k_fold_cross_validate <- function(model, data,
     fold_metrics = fold_metrics,
     overall_metrics = overall_results,
     avg_fold_metrics = avg_fold_metrics,
-    predictions = all_predictions,
-    actuals = all_actuals
+    #predictions = all_predictions,
+    #actuals = all_actuals
   )
-
   return(results)
 }
 
@@ -198,7 +213,8 @@ cross_validate_model <- function(model, data,
                            metrics = c("rmse", "r2", "adj_r2"),
                            k = 5, 
                            groupings = c("Year", "Month", "Weekday"),
-                           date_var = "Date") {
+                           date_var = "Date",
+                           strat_vars = c("is_weekday", "is_winter") {
   
   # Validate inputs
   if (!inherits(model, "lm")) {
@@ -238,7 +254,8 @@ cross_validate_model <- function(model, data,
     model = model,
     data = data_with_groups,
     metrics = metrics,
-    k = k
+    k = k,
+    strat_vars = strat_vars
   )
   
   # Cross-validation for each grouping type
@@ -368,4 +385,36 @@ summarize_cv_results <- function(cv_results) {
   }
   
   return(summary)
+}
+
+
+check_factor_levels <- function(data, k = 5, factor_vars = NULL) {
+  # If no specific factors provided, find all factors in the data
+  if (is.null(factor_vars)) {
+    factor_vars <- names(data)[sapply(data, is.factor)]
+  }
+  
+  # Create fold indices (similar to what CV would do)
+  n <- nrow(data)
+  fold_indices <- cut(sample(1:n), breaks = k, labels = FALSE)
+  
+  # Check each fold
+  for (i in 1:k) {
+    cat(paste("\n--- FOLD", i, "---\n"))
+    train_indices <- which(fold_indices != i)
+    
+    # Check each factor
+    for (var in factor_vars) {
+      train_levels <- unique(data[train_indices, var])
+      n_levels <- length(train_levels)
+      
+      if (n_levels == 1) {
+        cat(sprintf("ISSUE: Factor '%s' has only one level ('%s') in training data\n", 
+                   var, train_levels[1]))
+      } else {
+        cat(sprintf("OK: Factor '%s' has %d levels in training data\n", 
+                   var, n_levels))
+      }
+    }
+  }
 }
