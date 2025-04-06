@@ -10,6 +10,15 @@ header-includes:
   - \newcommand{\bm}[1]{\boldsymbol{#1}}
   - \newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
 ---
+<style>
+.figure .caption {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  font-style: italic;
+  color: #555;
+}
+</style>
 
 ```{r setup, include=FALSE, echo=FALSE}
 # Modify this setup code chunk to set options
@@ -234,7 +243,11 @@ $$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{te
 The model was fit using the "lm" built in function, which takes parameters "formula", which specifies the form of the linear model, in our case simply $Y \sim \text{Solar} + \text{Wind} + \text{week_type} + \text{season} + \text{year_d} + \text{Temp} + \text{TE} + \text{daily_var}$, and "data", which specifies which set of observations should be used to fit the model. The function then fits the model by computing the regression coefficients that minimize the value of $R^2$, as explained in the introduction.
 This model performs better than most of the other models we have tested, with the main trade off being its increased complexity. To select this model, we have tested several variations including the use of different variables, or transformations of the variables. Although slightly better results were obtained for some models, for example by implementing a dependency on the cubic root of the temperature, justified by plot (ADD REFERENCE), they were ultimately discarded, as the slight improvement in prediction accuracy was not enough to justify the significant increase in model complexity.
 ## Model performance
-
+```{r}
+source("code.R")
+results <- cross_validate_model(Model_M5, df)
+summary <- summarize_cv_results(results)
+```
 ## Compare winter
 We investigated the variation in maximum demand over the winter of 2013/14, with the weather conditions from previous winters.
 
