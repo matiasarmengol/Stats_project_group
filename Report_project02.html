@@ -454,7 +454,7 @@ variable.</p>
 <h2>Baseline Model</h2>
 <p>The baseline model is the model used as a benchmark for all following
 models, it is given by: <span class="math display">\[Y_i = \beta_0 +
-\beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i +
+\beta_1\text{wind}_i + \beta_2\text{solar}_i + \beta_3\text{temp}_i +
 \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i +
 \epsilon_i.\]</span> This model does not perform well, moreover, its
 performance is highly dependent on the month, year and day of the
@@ -468,18 +468,18 @@ the dataset, by appropriate transformations of existing variables, in an
 attempt to better capture their relationship with gross demand. The
 relationship displayed in figure (ADD REFERENCE) suggests the need to
 make a distinction between weekends and weekdays. To do so, we created a
-categorical variable “week_type”, defined below: <span class="math display">\[\text{week_type}_i = \begin{cases} 1 &amp;
+categorical variable “is_weekday”, defined below: <span class="math display">\[\text{is_weekday}_i = \begin{cases} 1 &amp;
 \text{if } i\text{ is a weekday} \\ 0 &amp; \text{if } i\text{ is a
 weekend day}\end{cases}.\]</span> Similarly, we created another
-categorical variable, “season”, defined as follows: <span class="math display">\[\text{season}_i = \begin{cases} 0 &amp; \text{if
-} i\text{ is in March} \\ 1 &amp; \text{otherwise}\end{cases},\]</span>
-as figure (ADD REFERENCE) shows that gross demand in March differs
-significantly from any other month. Figure (ADD REFERENCE) indicates
-that a linear relationship between gross demand and year is not
-suitable. As a result, we constructed a new variable instead, “year_d”
-to model the dependence of gross demand on the year, this was defined as
-follows: <span class="math display">\[\text{year}_{d_i} = |\text{year}_i
-- 2005|.\]</span> Finally, to capture the effects of the variability of
+categorical variable, “is_winter”, defined as follows: <span class="math display">\[\text{is_winter}_i = \begin{cases} 0 &amp;
+\text{if } i\text{ is in March} \\ 1 &amp;
+\text{otherwise}\end{cases},\]</span> as figure (ADD REFERENCE) shows
+that gross demand in March differs significantly from any other month.
+Figure (ADD REFERENCE) indicates that a linear relationship between
+gross demand and year is not suitable. As a result, we constructed a new
+variable instead, “year_d” to model the dependence of gross demand on
+the year, this was defined as follows: <span class="math display">\[\text{year}_{d_i} = |\text{year}_i -
+2005|.\]</span> Finally, to capture the effects of the variability of
 the temperature in a given day, we defined the variable “daily_var”, as
 displayed below: <span class="math display">\[\text{daily_var}_i =
 \widehat{Var}(\text{temp}_i) = .\]</span> This information was extracted
@@ -501,7 +501,7 @@ than if we had used temperature alone.</p>
 model, while incorporating the new variables defined in the previous
 section, as following: <span class="math display">\[Y_i = \beta_0 +
 \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i +
-\beta_4\text{week_type}_i + \beta_5\text{season}_i +
+\beta_4\text{is_weekday}_i + \beta_5\text{is_winter}_i +
 \beta_6\text{year_d}_i + \beta_7\text{TE}_i + \beta_8\text{daily_var}_i
 + \epsilon_i.\]</span> The model was fit using the “lm” built in
 function, which takes parameters “formula”, which specifies the form of
@@ -667,12 +667,9 @@ cross_validate &lt;- function(model, data,
   )
 
   # Create stratification variable based on analyse_by
-  strata_vars &lt;- paste(
-    if (&quot;Year&quot; %in% analyse_by) &quot;Year&quot; else NULL,
-    if (&quot;Month&quot; %in% analyse_by) &quot;Month&quot; else NULL,
-    if (&quot;Day&quot; %in% analyse_by) &quot;Day&quot; else NULL
-  )
+  strata_vars &lt;- analyse_by
   strata_vars &lt;- strata_vars[strata_vars != &quot;&quot;]
+  print(strata_vars)
   
   # Create a combined stratification factor
   if (length(strata_vars) &gt; 0) {
@@ -730,6 +727,8 @@ cross_validate &lt;- function(model, data,
     
     # Validation data (current fold)
     val_data &lt;- folds[[i]]
+    
+    print(str(val_data))
     
     # Train the model
     # Note: This assumes model is a formula-like specification
