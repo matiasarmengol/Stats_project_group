@@ -11,7 +11,7 @@ header-includes:
   - \newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE, echo=FALSE}
 # Modify this setup code chunk to set options
 # or add extra packages etc if needed.
 # See the project instructions for more details
@@ -38,7 +38,7 @@ theme_set(theme_bw())
 set.seed(12345L)
 ```
 
-```{r data_cleaning, echo=FALSE}
+```{r data_cleaning, include = FALSE, echo=FALSE}
 # import data
 SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
@@ -98,7 +98,7 @@ source("code.R")
 
 
 # Introduction
-```{r Introduction instructions}
+```{r Introduction instructions, echo = FALSE}
 #This section provides a brief introduction to the task and the datasets used. The introduction is intended to be #understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader #of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak #electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
 ```
 In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; "SCS_demand_modelling.csv" and "SCS_hourly_temp". Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains the hourly population-weighted average temperature for each day. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
@@ -113,7 +113,7 @@ where $y_i$ and $\hat{y_i}$ are as defined previously, and $\hat{y}$ is the mean
 We then constructed a $k$-fold cross validation scheme, to assess the performance of different models on unseen data. The cross validation scheme works by splitting the observations into $k$ groups of equal size, and using one of the groups to train the model, that is to determine the regression coefficients. With the coefficients fixed, the remaining $k-1$ groups are used to test the model, computing the value of $R^2$. The process is repeated $k$ times, training the model with a different group of each time, and computing the value of $R^2$ using the remaining groups. In the next section, we explore trends in the data as well as the baseline model provided, which is used as the starting point in our analysis.
 
 # Data description and exploratory analysis
-```{r Section 2 instructions}
+```{r Section 2 instructions, echo = FALSE}
 #Emphasis should be placed on the data features that are relevant for the subsequent modeling. Include visualizations that #help illustrate key patterns or relationships. All plots must also be described in the write up. Think carefully about #whether each plot needs to be included in your final draft. Your report should include figures and tables but they should #be as focused and impactful as possible.
 
 #Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional #dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
@@ -122,7 +122,7 @@ We then constructed a $k$-fold cross validation scheme, to assess the performanc
 ## Data visualization and preprocessing
 To prepare our data for analysis, we began by dropping unneeded coefficients. This was a list that changed over the course of our improvements on our candidate model, as we made informed changes to our model versions. Below is an initial covariate matrix that we used to get an overview of which columns could provide information on our response variable.
 
-```{r covariate_matrix, echo=FALSE}
+```{r covariate_matrix, echo=FALSE, fig.cap="This is a test caption, lets see hwo much I can waffle to see what would happen if the caption was particularly long, which is probably what we want given that we have to explain stuff precisely. Also lets see how wide the captions are generated, might need to tweak that later."}
 numeric_vars <- SCS_demand_modelling %>%
   select(-1, -Date)
 
@@ -152,10 +152,48 @@ heatmap
 ```
 
 
+```{r demand_vs_time_plots, echo=FALSE, message=FALSE}
+SCS_demand_modelling <- SCS_demand_modelling %>%
+  mutate(Date = as.Date(Date, format = "%Y-%m-%d"))
+
+# Aggregate data for yearly average
+demand_yearly <- SCS_demand_modelling %>%
+  group_by(year) %>%
+  summarise(avg_demand = mean(`demand_gross`, na.rm = TRUE))
+
+# Plot: Yearly Average Gross Demand vs. Year
+ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
+  geom_point(color = "darkblue") +
+  geom_smooth(color = "darkred") +
+  labs(title = "Yearly Average Gross Demand vs. Year",
+       x = "Year", y = "Average Gross Demand (MW)") +
+  theme_minimal()
+
+
+SCS_demand_modelling %>%
+  group_by(monthindex) %>%
+  summarize(avg_demand = mean(demand_gross, na.rm = TRUE)) %>%
+  ggplot(aes(x = monthindex, y = avg_demand)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Average Demand by Month",
+       x = "Month Index", y = "Average Demand")
+
+ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess", color = "red") +
+  theme_minimal() +
+  labs(title = "Relationship Between Temperature and Demand",
+       x = "Temperature", y = "Gross Demand")
+
+```
+
+
+
 ## Baseline Model
 The baseline model is the model used as a benchmark for all following models, it is given by:
 $$Y_i = \beta_0 + \beta_1\text{wind}_i + \beta_2\text{solar}_i + \beta_3\text{temp}_i + \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i + \epsilon_i.$$
-This model does not perform well, moreover, its performance is highly dependent on the month, year and day of the observation. (ADD CROSS-VALIDATION RESULTS). This hints at the need to explore the relationship between gross demand and year, as well as refine the relationship between gross demand and "wdayindex" and "monthindex", as simply using a linear relationship for the previous two variables does not seem appropriate. 
+This model does not perform well, moreover, its performance is highly dependent on the month, year and day of the observation. (ADD REFERENCE TO CROSS-VALIDATION RESULTS). This hints at the need to explore the relationship between gross demand and year, as well as refine the relationship between gross demand and "wdayindex" and "monthindex", as simply using a linear relationship for the previous two variables does not seem appropriate. 
 ## New variables
 In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in figure (ADD REFERENCE) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "is_weekday", defined below:
 $$\text{is_weekday}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 & \text{if } i\text{ is a weekend day}\end{cases}.$$
@@ -168,7 +206,7 @@ $$\text{daily_var}_i = \widehat{Var}(\text{temp}_i) = .$$
 This information was extracted from the "SCS_hourly_temp" dataset, and $ \widehat{Var}(\text{temp}_i)$ is the estimated variance of all hourly temperature measurements from day $i$. The use of this dataset provides further insight of the relationship between gross demand and temperature, allowing our model to predict the former more accurately than if we had used temperature alone.
 
 # Model fitting and cross-validation results
-```{r Section 3 intsructions}
+```{r Section 3 intsructions, echo = FALSE}
 #In this section you should detail your choice of model and describe the process used to refine and fit the model. You are #encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. #For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions #of these models beyond why they were rejected. This section should mention the methods explored and why they were #rejected, but most of your effort should go into describing the model you are using and your process for tuning and #validating it.
 
 #Provide implementation details and include results from cross-validation or other model evaluation techniques, #highlighting improvements and any trade-offs.
@@ -248,18 +286,18 @@ print(all_average)
 Taking the average temperature over the 2013/14 winter we get 5.60 degrees (2dp.), as opposed to 4.77 degrees (2dp.) over the entire set. This is contrasting to our assumption, but there could be many reasons as to why the demand happened to be higher. This could be a potential limitation of the model, and we will discuss it in the dedicated section of this document.
 
 # Conclusion
-```{r section 4 instructions}
+```{r section 4 instructions, echo = FALSE}
 #Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and #practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or #assumptions that should be considered when applying the model in practice.
 
 #Emphasize how your model can support NESO's long-term planning goals. If the model underperforms in some respects, provide #a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well #predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model #with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound #reasoning and transparency will be valued more than overclaiming results.
 ```
-
+Overall, our model performs well, and it achieves equally strong predictions in different time periods, with prediction accuracy being similar across all months and days of the week. A main limitation of the model is the relationship chosen between gross demand and "year". This is because the average yearly gross demand seems to increase steadily from 1991 to 2005, and then starts steadily dropping after 2005. The fact that the model was trained on only 10 years of data after 2005, makes it difficult to predict how the average yearly gross demand will behave in subsequent years. It could for example, start increasing again, thus making the period from 2005 to 2015 simply an exception to an otherwise linear trend. It could also be that the pattern is periodic, driven by the periodic nature of the economy. At the end we decided that average yearly gross demand is likely to continue dropping, driven by factors such as increased environmental awareness, increased availability and efficiency of renewable, non centralized sources and declining population growth. However the accuracy of our model's predictions in future years is strongly dependent on this relationship, which we cannot predict with confidence with the data given. As a result, the model's predictions are likely to become less accurate as the year of the observation strays further away from 2015. However, as long as the year of the observation is not too far from 2015, we expect the model to provide valuable and accurate insight on the gross demand. This means that our model will allow NESO to accurately predict future gross demand, provided that the model is not being used too far into the future(after 2015), allowing them to anticipate future changes in demand, and efficiently plan and allocate resources to ensure that the gross demand is reliably met. 
 
 # Code Appendix
-```{r section 5 instructions}
+```{r section 5 instructions, echo = FALSE}
 #Include here all the code used in your analysis. Ensure that the code is well-commented so it is easy to follow and reuse.
 ```
-
+In this section, we provide the documentation for all the functions created and used in this report.
 
 ```{r code=readLines("code.R"), eval=FALSE, echo=TRUE}
 # Do not change this code chunk
