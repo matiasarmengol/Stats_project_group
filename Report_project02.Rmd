@@ -26,9 +26,59 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(library(tidyverse))
 theme_set(theme_bw())
 
-# To give the same random number sequence every time the document is knited,
+# To give the same random number sequence every time the document is knitted,
 # making it easier to discuss the specific numbers in the text:
 set.seed(12345L)
+```
+
+```{r data_cleaning, echo=FALSE}
+# import data
+SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
+SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
+
+
+
+vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex', 'year', 'TE')
+set1 <- select(SCS_demand_modelling, vars)
+
+set1 <- set1 |> 
+  # Removing outliers using IQR method
+  filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
+  # Adding cosine transformations
+  mutate(Cos_Day = cos(Day_Index)) |> 
+  mutate(Cos_Month = cos(Month_Index)) |> 
+  # Creating categorical variables
+  mutate(week_type = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
+                            levels = c(0, 1), 
+                            labels = c("Weekend", "Weekday"))) |> 
+  mutate(season = factor(ifelse(Month_Index %in% c(0, 1, 10, 11), 1, 0), 
+                         levels = c(0, 1), 
+                         labels = c("Not Winter", "Winter")))
+
+#convert Date from char to date
+set2 <- SCS_hourly_temp
+set2$Date <- as.POSIXct(set2$Date, format = "%d/%m/%Y %H:%M")
+
+#summarize to get daily averages and variances
+set2_sum <- set2 |> 
+  mutate(Date = as.Date(Date)) |> 
+  group_by(Date) |> 
+  summarise(
+    daily_avg = mean(temp),
+    daily_var = var(temp),
+    .groups = "drop"
+  )
+
+#merge with SCS_demand_modelling and add year_d
+df <- left_join(set1, set2_sum, by = "Date")
+df$year_d = abs((df$year) - 2005)
+```
+
+```{r models, echo=FALSE}
+# Define M5, our chosen model
+M5 <- Y ~ Solar + Wind + week_type + season + year_d + Temp + TE + daily_var
+Model_M5 <- lm(M5, data = df)
+
 ```
 
 ```{r code=readLines("code.R"), eval=TRUE, echo=FALSE}
@@ -88,6 +138,46 @@ We investigated the variation in maximum demand over the winter of 2013/14, with
 
 The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the year-dependent variables ('year_d, week_type') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
+  
+```{r compare_winter_plots, echo=FALSE, message=FALSE}
+source("code_modular.R")
+
+years <- 1991:2012
+
+comparisons <- lapply(years, function(year) {
+  compare_winter(Model_M5, df, year)
+})
+
+comparisons_df <- data.frame(
+  other_year = years,
+  control_max = sapply(comparisons, function(x) x$control_max),
+  max_predicted = sapply(comparisons, function(x) x$max_predicted)
+)
+
+comparisons_df <- mutate(comparisons_df, diff = (control_max - max_predicted))
+
+# Plot 1: Predicted Max Demand
+ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = TRUE, color = "red") + # Added loess smoothing and removed standard error
+  labs(
+    title = "Predicted Max Demand If 2013/14 Had Another Winter's Weather",
+    x = "Year Used for Weather Conditions",
+    y = "Predicted Max Demand"
+  ) +
+  theme_minimal()
+
+# Plot 2: Predicted Difference
+ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = TRUE, color = "blue") + # Added loess smoothing and removed standard error
+  labs(
+    title = "Predicted Difference in Max Demand If 2013/14 Had Another Winter's Weather",
+    x = "Year Used for Weather Conditions",
+    y = "Difference in Max Demand (Predicted - Actual)"
+  ) +
+  theme_minimal()
+```
 
 
 
