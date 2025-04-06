@@ -537,10 +537,16 @@ the year, this was defined as follows: <span class="math display">\[\text{year}_
 2005|.\]</span> Finally, to capture the effects of the variability of
 the temperature in a given day, we defined the variable “daily_var”, as
 displayed below: <span class="math display">\[\text{daily_var}_i =
-\widehat{Var}(\text{temp}_i) = .\]</span> This information was extracted
-from the “SCS_hourly_temp” dataset, and $ (_i)$ is the estimated
-variance of all hourly temperature measurements from day <span class="math inline">\(i\)</span>. The use of this dataset provides
-further insight of the relationship between gross demand and
+\widehat{Var}(\text{temp}_i) =
+\dfrac{1}{23}\sum_{j=1}^{24}(\text{temp}_{i,j} -
+\overline{\text{temp}_i})^2 .\]</span> This information was extracted
+from the “SCS_hourly_temp” dataset, and <span class="math inline">\(\widehat{Var}(\text{temp}_i)\)</span> is the
+estimated variance of all hourly temperature measurements from day <span class="math inline">\(i\)</span>, <span class="math inline">\(\overline{\text{temp}_i}\)</span> is the average
+hourly temperature of day <span class="math inline">\(i\)</span>, and
+<span class="math inline">\(\text{temp}_{i,j}\)</span> is the
+temperature recorded at day <span class="math inline">\(i\)</span> and
+hour <span class="math inline">\(j\)</span>. The use of this dataset
+provides further insight of the relationship between gross demand and
 temperature, allowing our model to predict the former more accurately
 than if we had used temperature alone.</p>
 </div>
@@ -1079,216 +1085,6 @@ k_fold_cross_validate &lt;- function(model, data,
   }
   
   return(results)
-}
-
-cross_validate_model &lt;- function(model, data,
-                           metrics = c(&quot;rmse&quot;, &quot;r2&quot;, &quot;adj_r2&quot;),
-                           k = 5, 
-                           groupings = c(&quot;Year&quot;, &quot;Month&quot;, &quot;Weekday&quot;),
-                           date_var = &quot;Date&quot;,
-                           strat_vars = c(&quot;is_weekday&quot;, &quot;is_winter&quot;)) {
-  
-  # Validate inputs
-  if (!inherits(model, &quot;lm&quot;)) {
-    stop(&quot;Model must be a linear model object&quot;)
-  }
-  
-  if (validate_data(data)) {
-    stop(&quot;Empty or NULL data passed to cross validation&quot;)
-  }
-  
-  if (!date_var %in% colnames(data)) {
-    stop(paste(&quot;Date variable&quot;, date_var, &quot;not found in the data&quot;))
-  }
-  
-  
-  
-  # Create time grouping variables if they don&#39;t exist
-  data_with_groups &lt;- data
-  
-  if (&quot;Year&quot; %in% groupings &amp;&amp; !&quot;Year&quot; %in% colnames(data)) {
-    data_with_groups$Year &lt;- as.factor(format(data_with_groups[[date_var]], &quot;%Y&quot;))
-  }
-  
-  if (&quot;Month&quot; %in% groupings &amp;&amp; !&quot;Month&quot; %in% colnames(data)) {
-    data_with_groups$Month &lt;- as.factor(format(data_with_groups[[date_var]], &quot;%m&quot;))
-  }
-  
-  if (&quot;Weekday&quot; %in% groupings &amp;&amp; !&quot;Weekday&quot; %in% colnames(data)) {
-    data_with_groups$Weekday &lt;- as.factor(format(data_with_groups[[date_var]], &quot;%a&quot;))
-  }
-  
-  # Store results for each grouping
-  all_results &lt;- list()
-  
-  # Overall cross-validation (no grouping)
-  all_results$Overall &lt;- k_fold_cross_validate(
-    model = model,
-    data = data_with_groups,
-    metrics = metrics,
-    k = k,
-    strat_vars = strat_vars
-  )
-  
-  # Cross-validation for each grouping type
-  for (group_var in groupings) {
-    if (group_var %in% colnames(data_with_groups)) {
-      message(paste(&quot;Performing cross-validation by&quot;, group_var, &quot;...&quot;))
-      
-      # Get unique groups
-      unique_groups &lt;- unique(data_with_groups[[group_var]])
-      group_results &lt;- list()
-      
-      # Cross-validate within each group
-      for (group in unique_groups) {
-        message(paste(&quot; - Processing&quot;, group_var, &quot;=&quot;, group))
-        
-        # Subset data for this group
-        group_data &lt;- data_with_groups[data_with_groups[[group_var]] == group, ]
-        
-        # Skip if not enough data points
-        if (nrow(group_data) &lt; 2 * k) {
-          message(paste(&quot;   Skipping&quot;, group_var, &quot;=&quot;, group, &quot;- insufficient data points&quot;))
-          next
-        }
-        
-        # Perform k-fold cross-validation
-        cv_result &lt;- k_fold_cross_validate(
-          model = model,
-          data = group_data,
-          metrics = metrics,
-          k = min(k, floor(nrow(group_data)/2))  # Ensure k isn&#39;t too large for the data
-        )
-        
-        # Store result
-        group_results[[as.character(group)]] &lt;- cv_result
-      }
-      
-      # Store results for this grouping
-      all_results[[group_var]] &lt;- group_results
-      
-      # Calculate aggregate metrics across all groups
-      aggregate_metrics &lt;- list()
-      for (metric in metrics) {
-        # Extract this metric from each group
-        metric_values &lt;- sapply(group_results, function(result) {
-          if (!is.null(result$overall_metrics[[metric]])) {
-            return(result$overall_metrics[[metric]])
-          } else {
-            return(NA)
-          }
-        })
-        
-        # Calculate weighted average (weighted by number of observations in each group)
-        group_sizes &lt;- sapply(names(group_results), function(group) {
-          sum(!is.na(group_results[[group]]$actuals))
-        })
-        
-        # Calculate weighted average if we have valid values
-        if (any(!is.na(metric_values)) &amp;&amp; sum(group_sizes) &gt; 0) {
-          weighted_avg &lt;- sum(metric_values * group_sizes, na.rm = TRUE) / 
-                          sum(group_sizes[!is.na(metric_values)])
-          aggregate_metrics[[paste0(&quot;weighted_avg_&quot;, metric)]] &lt;- weighted_avg
-        }
-      }
-      
-      # Store aggregate metrics
-      all_results[[paste0(group_var, &quot;_aggregate&quot;)]] &lt;- aggregate_metrics
-    } else {
-      warning(paste(&quot;Grouping variable&quot;, group_var, &quot;not found in data&quot;))
-    }
-  }
-  
-  # Return all results
-  return(all_results)
-}
-
-# Helper function to summarize cross-validation results
-summarize_cv_results &lt;- function(cv_results) {
-  summary &lt;- list()
-  
-  # Overall summary
-  if (!is.null(cv_results$Overall)) {
-    summary$Overall &lt;- cv_results$Overall$overall_metrics
-  }
-  
-  # Group summaries
-  for (group in names(cv_results)) {
-    if (group != &quot;Overall&quot; &amp;&amp; !endsWith(group, &quot;_aggregate&quot;)) {
-      # Extract metrics for each subgroup
-      group_summary &lt;- data.frame(Group = character(), 
-                                  N = integer(), 
-                                  stringsAsFactors = FALSE)
-      
-      # Add columns for each metric
-      metrics &lt;- names(cv_results$Overall$overall_metrics)
-      for (metric in metrics) {
-        group_summary[[metric]] &lt;- numeric()
-      }
-      
-      # Add data for each subgroup
-      for (subgroup in names(cv_results[[group]])) {
-        row &lt;- data.frame(
-          Group = subgroup,
-          N = length(cv_results[[group]][[subgroup]]$actuals),
-          stringsAsFactors = FALSE
-        )
-        
-        # Add metric values
-        for (metric in metrics) {
-          row[[metric]] &lt;- cv_results[[group]][[subgroup]]$overall_metrics[[metric]]
-        }
-        
-        # Add to summary
-        group_summary &lt;- rbind(group_summary, row)
-      }
-      
-      # Sort by group name
-      group_summary &lt;- group_summary[order(group_summary$Group), ]
-      
-      # Add to overall summary
-      summary[[group]] &lt;- group_summary
-    }
-    
-    # Include aggregate metrics
-    if (endsWith(group, &quot;_aggregate&quot;)) {
-      summary[[group]] &lt;- cv_results[[group]]
-    }
-  }
-  
-  return(summary)
-}
-
-
-check_factor_levels &lt;- function(data, k = 5, factor_vars = NULL) {
-  # If no specific factors provided, find all factors in the data
-  if (is.null(factor_vars)) {
-    factor_vars &lt;- names(data)[sapply(data, is.factor)]
-  }
-  
-  # Create fold indices (similar to what CV would do)
-  n &lt;- nrow(data)
-  fold_indices &lt;- cut(sample(1:n), breaks = k, labels = FALSE)
-  
-  # Check each fold
-  for (i in 1:k) {
-    cat(paste(&quot;\n--- FOLD&quot;, i, &quot;---\n&quot;))
-    train_indices &lt;- which(fold_indices != i)
-    
-    # Check each factor
-    for (var in factor_vars) {
-      train_levels &lt;- unique(data[train_indices, var])
-      n_levels &lt;- length(train_levels)
-      
-      if (n_levels == 1) {
-        cat(sprintf(&quot;ISSUE: Factor &#39;%s&#39; has only one level (&#39;%s&#39;) in training data\n&quot;, 
-                   var, train_levels[1]))
-      } else {
-        cat(sprintf(&quot;OK: Factor &#39;%s&#39; has %d levels in training data\n&quot;, 
-                   var, n_levels))
-      }
-    }
-  }
 }</code></pre>
 </div>
 
