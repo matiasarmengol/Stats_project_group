@@ -256,26 +256,8 @@ Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 
 
 ```{r compare_metrics, echo=FALSE}
 
-metrics_M0 <- data.frame(
-  model = "M0",
-  metric = names(M0_cv$Overall$overall_metrics),
-  value = unlist(M0_cv$Overall$overall_metrics)
-)
-
-metrics_M5 <- data.frame(
-  model = "M5",
-  metric = names(M5_cv$Overall$overall_metrics),
-  value = unlist(M5_cv$Overall$overall_metrics)
-)
-
-compare_set <- rbind(metrics_M0, metrics_M5)
-
-# Plot
-ggplot(compare_set, aes(x = metric, y = value, fill = model)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Model Performance Comparison", 
-       y = "Value", x = "Metric") +
-  theme_minimal()
+ggplot() +
+  geom_bar(mapping = )
 
 ```
 
