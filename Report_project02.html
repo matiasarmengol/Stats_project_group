@@ -458,9 +458,9 @@ models, it is given by: <span class="math display">\[Y_i = \beta_0 +
 \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i +
 \epsilon_i.\]</span> This model does not perform well, moreover, its
 performance is highly dependent on the month, year and day of the
-observation. (ADD CROSS-VALIDATION RESULTS). This hints at the need to
-explore the relationship between gross demand and year, as well as
-refine the relationship between gross demand and “wdayindex” and
+observation. (ADD REFERENCE TO CROSS-VALIDATION RESULTS). This hints at
+the need to explore the relationship between gross demand and year, as
+well as refine the relationship between gross demand and “wdayindex” and
 “monthindex”, as simply using a linear relationship for the previous two
 variables does not seem appropriate. ## New variables In light of the
 weaknesses of the baseline model, we have created new covariates from
@@ -560,6 +560,33 @@ of this document.</p>
 <pre class="r"><code>#Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and #practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or #assumptions that should be considered when applying the model in practice.
 
 #Emphasize how your model can support NESO&#39;s long-term planning goals. If the model underperforms in some respects, provide #a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well #predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model #with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound #reasoning and transparency will be valued more than overclaiming results.</code></pre>
+<p>Overall, our model performs well, and it achieves equally strong
+predictions in different time periods, with prediction accuracy being
+similar across all months and days of the week. A main limitation of the
+model is the relationship chosen between gross demand and “year”. This
+is because the average yearly gross demand seems to increase steadily
+from 1991 to 2005, and then starts steadily dropping after 2005. The
+fact that the model was trained on only 10 years of data after 2005,
+makes it difficult to predict how the average yearly gross demand will
+behave in subsequent years. It could for example, start increasing
+again, thus making the period from 2005 to 2015 simply an exception to
+an otherwise linear trend. It could also be that the pattern is
+periodic, driven by the periodic nature of the economy. At the end we
+decided that average yearly gross demand is likely to continue dropping,
+driven by factors such as increased environmental awareness, increased
+availability and efficiency of renewable, non centralized sources and
+declining population growth. However the accuracy of our model’s
+predictions in future years is strongly dependent on this relationship,
+which we cannot predict with confidence with the data given. As a
+result, the model’s predictions are likely to become less accurate as
+the year of the observation strays further away from 2015. However, as
+long as the year of the observation is not too far from 2015, we expect
+the model to provide valuable and accurate insight on the gross demand.
+This means that our model will allow NESO to accurately predict future
+gross demand, provided that the model is not being used too far into the
+future(after 2015), allowing them to anticipate future changes in
+demand, and efficiently plan and allocate resources to ensure that the
+gross demand is reliably met.</p>
 </div>
 <div id="code-appendix" class="section level1">
 <h1>Code Appendix</h1>
