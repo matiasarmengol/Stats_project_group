@@ -1,12 +1,26 @@
+#' Validate Input data
+#' @descripton Make sure that input data has at least 1 column and is not NULL
+#' @param data dataframe.
+#' @return logical TRUE if data is invalid
 validate_data <- function(data){
   return (is.null(data)||length(data) == 0)
 }
 
+#' Calculate Root Mean Squared Error
+#' @descripton Calculate rsme. ignore na values
+#' @param true_vals y
+#' @param pred_vals y hat
+#' @return numeric
 calculate_rmse <- function(true_vals, pred_vals){
-  rmse <- sqrt(mean((true_vals - pred_vals)^2, na.rm = TRUE))  # Fixed RMSE calculation
+  rmse <- sqrt(mean((true_vals - pred_vals)^2, na.rm = TRUE))
   return(rmse)
 }
 
+#' Calculate R Squared
+#' @descripton Make sure variance is above 0, ignore na values
+#' @param true_vals y
+#' @param pred_vals y hat
+#' @return numeric
 calculate_r2 <- function(true_vals, pred_vals){
   if(var(true_vals, na.rm = TRUE) > 0){
     avg_val <- mean(true_vals, na.rm = TRUE)
@@ -20,6 +34,10 @@ calculate_r2 <- function(true_vals, pred_vals){
   }
 }
 
+#' Helper function to get model degress of freedom
+#' @descripton has validation to ensure a model was passed. Accounts for intercept (if present)
+#' @param model.
+#' @return numeric.
 get_degrees_freedom <- function(model){
   if (is.null(model)){
     warning("Model is NULL")
@@ -35,6 +53,12 @@ get_degrees_freedom <- function(model){
   }
 }
 
+#' Calculate Adjusted R Squared
+#' @descripton alse checks that there are enough datapoints to use
+#' @param model. To pass to calculate degrees of freedom
+#' @param true_vals y
+#' @param pred_vals y hat
+#' @return numeric.
 calculate_adj_r2 <- function(true_vals, pred_vals, model){
   num_predictors <- get_degrees_freedom(model)
   n <- sum(!is.na(true_vals) & !is.na(pred_vals))
@@ -49,8 +73,19 @@ calculate_adj_r2 <- function(true_vals, pred_vals, model){
   }
 }
 
+#' Calculate Evaluation metrics
+#' @descripton Calculate metrics:
+#'  -Root Mean Squared Error (RMSE)
+#'  -R Squared (r2)
+#'  -Adjusted R Squared (adj_r2)
+#'  Validate data to make sure metrics can be calculated.
+#' @param actual y
+#' @param predicted y hat
+#' @param model. If calculating adjusted r squared
+#' @param metrics. character vector of metrics to calculate (see above for options)
+#' @return df of results or empty list if invalid argument is passed
 calculate_metrics <- function(actual, predicted, model = NULL, metrics = c("rmse", "r2", "adj_r2")){
-  # Initialize result variables
+  # Initialize variables
   true_vals <- NULL
   pred_vals <- NULL
   
@@ -93,6 +128,12 @@ calculate_metrics <- function(actual, predicted, model = NULL, metrics = c("rmse
   return(results)
 }
 
+#' Validate inputs that will be entered into cross validation
+#' @description First stop points to stop execution before stratified k-fold runs
+#' @param model.
+#' @param data. dataframe that the model was trained on
+#' @param k. number of folds to cross validate with.
+#' @return Nothing. Just stops execution if an error is thrown.
 validate_inputs <- function(model, data, k){
   if (!inherits(model, "lm")) {
     stop("Model must be a linear model object")
@@ -103,10 +144,16 @@ validate_inputs <- function(model, data, k){
   if (k < 2 || k > nrow(data)){
     stop("Invalid number of folds")
   }
-
-
 }
 
+#' Split data into k (stratified) folds.
+#' @descripton Split the data into folds. 
+#' If stratification variables are given then it will ensure proportional representation using the caret (package in R).
+#' Otherwise it will use random sampling to reindex the data and make the folds
+#' @param data. Dataframe of data to be split
+#' @param k. Defaults to 5.
+#' @param strat_vars. Optional. Pass a character vector of column names to stratify by.
+#' @ results. data split into k folds
 create_k_folds <- function(data, k = 5, strat_vars = NULL){
   #Shuffle and split data
   if(!is.null(strat_vars)){
@@ -130,6 +177,19 @@ create_k_folds <- function(data, k = 5, strat_vars = NULL){
 
   return(fold_indices)
 }
+
+#' Perform k fold cross validation
+#' @descripton. K fold cross validation on set of metrics.
+#' - Option to stratify by few variables
+#' - After performing one fold, group by date periods to evaluate the model on each sub period (e.g. each year)
+#' @param model lm model object specifying the model to evaluate
+#' @param data dataframe containing the variables in the model
+#' @param metrics character vector of performance metrics to calculate
+#' @param k integer number of folds for cross-validation
+#' @param strat_vars character vector of column names to use for stratified sampling
+#' @param groupings character vector of time units to group results by
+#' @param date_var character name of the date column in data
+#' @return dataframe with all cross_validation results
 
 k_fold_cross_validate <- function(model, data,
                                   metrics = c("rmse", "r2", "adj_r2"),
@@ -174,13 +234,16 @@ k_fold_cross_validate <- function(model, data,
     val_indices <- which(fold_indices == i)
     train_data <- data[-val_indices, ]
     val_data <- data[val_indices, ]
+
     # Train model
     fold_model <- lm(model_formula, data = train_data)
     # Make predictions
     predictions <- predict(fold_model, newdata = val_data)
+
     #For future
     all_actuals[val_indices] <- val_data[[response_var]]
     all_predictions[val_indices] <- predictions
+
     # Calculate metrics for the fold
     fold_results <- calculate_metrics(
       actual = val_data[[response_var]], 
@@ -191,13 +254,9 @@ k_fold_cross_validate <- function(model, data,
     
     # Group predictions by year within this fold
     if ("Year" %in% groupings) {
-      # Check for different possible column name cases
       year_col <- NULL
-      if ("Year" %in% colnames(val_data)) {
-        year_col <- "Year"
-      } else if ("year" %in% colnames(val_data)) {
-        year_col <- "year"
-      } else if (date_var %in% colnames(val_data)) {
+      #Check incase year column already exists
+      if (date_var %in% colnames(val_data)) {
         # Extract year from date if date column exists
         val_data$temp_year <- format(val_data[[date_var]], "%Y")
         year_col <- "temp_year"
@@ -219,7 +278,7 @@ k_fold_cross_validate <- function(model, data,
               actuals = list()
             )
           }
-          
+  
           fold_year_metrics[[year_key]]$predictions[[i]] <- year_predictions
           fold_year_metrics[[year_key]]$actuals[[i]] <- year_actuals
         }
@@ -230,11 +289,7 @@ k_fold_cross_validate <- function(model, data,
     if ("Month" %in% groupings) {
       # Similar implementation for months
       month_col <- NULL
-      if ("Month" %in% colnames(val_data)) {
-        month_col <- "Month"
-      } else if ("month" %in% colnames(val_data)) {
-        month_col <- "month"
-      } else if (date_var %in% colnames(val_data)) {
+      if (date_var %in% colnames(val_data)) {
         val_data$temp_month <- format(val_data[[date_var]], "%m")
         month_col <- "temp_month"
       }
@@ -264,11 +319,7 @@ k_fold_cross_validate <- function(model, data,
     if ("Weekday" %in% groupings) {
       # Similar implementation for weekdays
       weekday_col <- NULL
-      if ("Weekday" %in% colnames(val_data)) {
-        weekday_col <- "Weekday"
-      } else if ("weekday" %in% colnames(val_data)) {
-        weekday_col <- "weekday"
-      } else if (date_var %in% colnames(val_data)) {
+      if (date_var %in% colnames(val_data)) {
         val_data$temp_weekday <- weekdays(val_data[[date_var]])
         weekday_col <- "temp_weekday"
       }
