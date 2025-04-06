@@ -1,6 +1,6 @@
 ---
 title: "Modelling Peak Electricity Demand in Great Britain"
-author: "Group 47, Matias Armengol(s2286042), Fergus(s2185709), Adi(s2278709)"
+author: "Group 47, Matias Armengol(s2286042), Fergus Fleming(s2185709), Adi(s2278709)"
 output:
   html_document:
     number_sections: no
@@ -178,7 +178,22 @@ ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   ) +
   theme_minimal()
 ```
+These plots above depict both the predicted demand itself and the difference between it and the observed conditions in 2013/14.\\
+The observed maximum demand over the winter of 2013/14 was $5243MW$. From the difference plot, we can see that the difference is typically negative - most years' weather conditions would decrease the demand over the winter, our model predicts. We do see that there are several cases where the difference is positive, and that the predicted demand is higher than observed. However, the average difference is $-262MW$ to the nearest $MW$. \\
+A qualitative interpretation of this is that 2013/14 had a particularly cold winter, or one that increased demand for some other factors. We can check directly what the average temperature in the winter of 2013/14.
 
+```{r check_temp, include=FALSE}
+
+winter_set <- df |> 
+    filter((year == "2013" & Month_Index %in% c(10, 11)) | (year == "2014" & Month_Index %in% c(0, 1, 2)))
+ this_average <- mean(winter_set$Temp)
+ 
+all_average <- mean(df$Temp)
+
+print(this_average)
+print(all_average)
+
+```
 
 
 # Conclusion
