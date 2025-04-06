@@ -34,14 +34,11 @@ selected <- select(SCS_demand_modelling, vars)
 selected <- selected |> 
   # Removing outliers using IQR method
   filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
-  # Adding cosine transformations
-  mutate(Cos_Day = cos(Day_Index)) |> 
-  mutate(Cos_Month = cos(Month_Index)) |> 
   # Creating categorical variables
-  mutate(week_type = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
+  mutate(is_weekday = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
                             levels = c(0, 1), 
                             labels = c("Weekend", "Weekday"))) |> 
-  mutate(season = factor(ifelse(Month_Index %in% c(0, 1, 10, 11), 1, 0), 
+  mutate(is_winter = factor(ifelse(Month_Index %in% c(0, 1, 10, 11), 1, 0), 
                          levels = c(0, 1), 
                          labels = c("Not Winter", "Winter")))
 
@@ -187,20 +184,8 @@ p4 <- ggplot(demand_data, aes(x = wday_cos, y = demand_gross)) +
 ```
 
 
-### Model_1
-```{r M1, include=FALSE}
-#first attempt at a new model - using cos of day and month instead. We expect 
-#a cyclic relationship as the year progresses so we use the cosine of our time
-#variables here to see if it better fits the data.
-
-M1 <- Y ~ Wind + Solar + Temp + Cos_Day + Cos_Month
-Model_M1 <- lm(M1, data = selected)
-
-summary(Model_M1)
-
-par(mfrow = c(2,2))
-plot(Model_M1)
-
+### Potential improvements
+```{r, include=FALSE}
 #'
 #'Comments on the results of the diagnostic plots to suggestions for a better
 #'model:
@@ -286,7 +271,7 @@ a_summary <- a_set |>
 big_set <- left_join(selected, a_summary, by = "Date")
 
 #clean up dataset for new application
-vars2 <- c('Wind', 'Solar', 'Y', 'Temp', 'Day_Index', 'Month_Index', 'year', 'Cos_Day', 'Cos_Month', 'week_type', 'season', 'daily_avg', 'daily_var')
+vars2 <- c('Wind', 'Solar', 'Y', 'Temp', 'Day_Index', 'Month_Index', 'year', 'is_weekday', 'is_winter', 'daily_avg', 'daily_var')
 
 new_set <- big_set |> 
   select(all_of(vars2)) |> 
@@ -316,35 +301,16 @@ ggplot(new_set_long_numeric, aes(x = value, y = Y)) +
 ```
 
 
-### Model_3
-```{r model3}
-M3 <- Y ~ Solar + week_type + season + Temp + year
-Model_M3 <- lm(M3, data = selected)
 
-summary(Model_M3)
-
-par(mfrow = c(2,2))
-plot(Model_M3)
-```
-
-
-### Model_4
-```{r model4}
-M4 <- Y ~ Solar + week_type + season + Temp + year + daily_avg + daily_var
-Model_M4 <- lm(M4, data = big_set)
-
-summary(Model_M4)
-```
-
-
-### Model_5
+### Final model
 ```{r model5}
 big_set$year_d = abs((big_set$year)-2005)
 
-M5 <- Y ~ Solar + Wind + week_type + season + year_d + Temp + TE + daily_var
+M5 <- Y ~ Solar + Wind + is_weekday + is_winter + year_d + Temp + TE + daily_var
 Model_M5 <- lm(M5, data = big_set)
 
 summary(Model_M5)
+plot(Model_M5)
 ```
 
 
