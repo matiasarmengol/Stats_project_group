@@ -112,6 +112,9 @@ We then constructed a $k$-fold cross validation scheme, to assess the performanc
 
 ## Data visualization and preprocessing
 ## Baseline Model
+The baseline model is the model used as a benchmark for all following models, it is given by:
+$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i + \epsilon_i.$$
+This model does not perform well, moreover, its performance is highly dependent on the month, year and day of the observation. (ADD CROSS-VALIDATION RESULTS). This hints at the need to explore the relationship between gross demand and year, as well as refine the relationship between gross demand and "wdayindex" and "monthindex", as simply using a linear relationship for the previous two variables does not seem appropriate. 
 ## New variables
 In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in figure (ADD REFERENCE) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "week_type", defined below:
 $$\text{week_type}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 & \text{if } i\text{ is a weekend day}\end{cases}.$$
@@ -132,7 +135,7 @@ This information was extracted from the "SCS_hourly_temp" dataset, and $ \wideha
 
 ## Model overview
 We are now ready to introduce our model, which builds on the baseline model, while incorporating the new variables defined in the previous section, as following:
-$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{week_type}_i + \beta_5\text{season}_i + \beta_6\text{year_d}_i + \beta_7\text{TE}_i + \beta_8\text{daily_var}_i.$$
+$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{week_type}_i + \beta_5\text{season}_i + \beta_6\text{year_d}_i + \beta_7\text{TE}_i + \beta_8\text{daily_var}_i + \epsilon_i.$$
 This model performs better than all most other models we have tested, with the main trade off being its increased complexity. To select this model, we have tested several variations including the use of different variables, or transformations of the variables. Although slightly better results were obtained for some models, for example by implementing a dependency on the cubic root of the temperature, they were ultimately discarded, as the slight improvement in prediction accuracy was not enough to justify the significant increase in model complexity.
 ## Model performance
 
