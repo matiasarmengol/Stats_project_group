@@ -127,7 +127,7 @@ k_fold_cross_validate <- function(model, data,
     }
 
     #Create combined stratificted factor
-    strata_combination <- do.call(paste, c(data[strata_vars], sep = "_"))
+    strata_combination <- do.call(paste, c(data[strat_vars], sep = "_"))
     
     # Split by strata
     fold_indices <- createFolds(strata_combination, k = k, list = FALSE)
@@ -203,8 +203,8 @@ k_fold_cross_validate <- function(model, data,
     fold_metrics = fold_metrics,
     overall_metrics = overall_results,
     avg_fold_metrics = avg_fold_metrics,
-    #predictions = all_predictions,
-    #actuals = all_actuals
+    predictions = all_predictions,
+    actuals = all_actuals
   )
   return(results)
 }
@@ -214,7 +214,7 @@ cross_validate_model <- function(model, data,
                            k = 5, 
                            groupings = c("Year", "Month", "Weekday"),
                            date_var = "Date",
-                           strat_vars = c("is_weekday", "is_winter") {
+                           strat_vars = c("is_weekday", "is_winter")) {
   
   # Validate inputs
   if (!inherits(model, "lm")) {
