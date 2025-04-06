@@ -122,7 +122,7 @@ We then constructed a $k$-fold cross validation scheme, to assess the performanc
 ## Data visualization and preprocessing
 To prepare our data for analysis, we began by dropping unneeded coefficients. This was a list that changed over the course of our improvements on our candidate model, as we made informed changes to our model versions. Below is an initial covariate matrix that we used to get an overview of which columns could provide information on our response variable.
 
-```{r covariate_matrix, echo=FALSE}
+```{r covariate_matrix, echo=FALSE, fig.cap="This is a test caption, lets see hwo much I can waffle to see what would happen if the caption was particularly long, which is probably what we want given that we have to explain stuff precisely. Also lets see how wide the captions are generated, might need to tweak that later."}
 numeric_vars <- SCS_demand_modelling %>%
   select(-1, -Date)
 
