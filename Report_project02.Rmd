@@ -51,14 +51,12 @@ set1 <- select(SCS_demand_modelling, vars)
 set1 <- set1 |> 
   # Removing outliers using IQR method
   filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
-  # Adding cosine transformations
-  mutate(Cos_Day = cos(Day_Index)) |> 
-  mutate(Cos_Month = cos(Month_Index)) |> 
+
   # Creating categorical variables
-  mutate(week_type = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
+  mutate(is_weekday = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
                             levels = c(0, 1), 
                             labels = c("Weekend", "Weekday"))) |> 
-  mutate(season = factor(ifelse(Month_Index %in% c(0, 1, 10, 11), 1, 0), 
+  mutate(is_winter = factor(ifelse(Month_Index %in% c(0, 1, 10, 11), 1, 0), 
                          levels = c(0, 1), 
                          labels = c("Not Winter", "Winter")))
 
@@ -83,7 +81,7 @@ df$year_d = abs((df$year) - 2005)
 
 ```{r models, echo=FALSE}
 # Define M5, our chosen model
-M5 <- Y ~ Solar + Wind + week_type + season + year_d + Temp + TE + daily_var
+M5 <- Y ~ Solar + Wind + is_weekday + is_weekend + year_d + Temp + TE + daily_var
 Model_M5 <- lm(M5, data = df)
 
 ```
@@ -152,13 +150,13 @@ heatmap
 
 ## Baseline Model
 The baseline model is the model used as a benchmark for all following models, it is given by:
-$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i + \epsilon_i.$$
+$$Y_i = \beta_0 + \beta_1\text{wind}_i + \beta_2\text{solar}_i + \beta_3\text{temp}_i + \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i + \epsilon_i.$$
 This model does not perform well, moreover, its performance is highly dependent on the month, year and day of the observation. (ADD CROSS-VALIDATION RESULTS). This hints at the need to explore the relationship between gross demand and year, as well as refine the relationship between gross demand and "wdayindex" and "monthindex", as simply using a linear relationship for the previous two variables does not seem appropriate. 
 ## New variables
-In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in figure (ADD REFERENCE) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "week_type", defined below:
-$$\text{week_type}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 & \text{if } i\text{ is a weekend day}\end{cases}.$$
-Similarly, we created another categorical variable, "season", defined as follows:
-$$\text{season}_i = \begin{cases} 0 & \text{if } i\text{ is in March} \\ 1 & \text{otherwise}\end{cases},$$
+In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in figure (ADD REFERENCE) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "is_weekday", defined below:
+$$\text{is_weekday}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 & \text{if } i\text{ is a weekend day}\end{cases}.$$
+Similarly, we created another categorical variable, "is_winter", defined as follows:
+$$\text{is_winter}_i = \begin{cases} 0 & \text{if } i\text{ is in March} \\ 1 & \text{otherwise}\end{cases},$$
 as figure (ADD REFERENCE) shows that gross demand in March differs significantly from any other month. Figure (ADD REFERENCE) indicates that a linear relationship between gross demand and year is not suitable. As a result, we constructed a new variable instead, "year_d" to model the dependence of gross demand on the year, this was defined as follows:
 $$\text{year}_{d_i} = |\text{year}_i - 2005|.$$
 Finally, to capture the effects of the variability of the temperature in a given day, we defined the variable "daily_var", as displayed below:
@@ -174,7 +172,7 @@ This information was extracted from the "SCS_hourly_temp" dataset, and $ \wideha
 
 ## Model overview
 We are now ready to introduce our model, which builds on the baseline model, while incorporating the new variables defined in the previous section, as following:
-$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{week_type}_i + \beta_5\text{season}_i + \beta_6\text{year_d}_i + \beta_7\text{TE}_i + \beta_8\text{daily_var}_i + \epsilon_i.$$
+$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{is_weekday}_i + \beta_5\text{is_winter}_i + \beta_6\text{year_d}_i + \beta_7\text{TE}_i + \beta_8\text{daily_var}_i + \epsilon_i.$$
 The model was fit using the "lm" built in function, which takes parameters "formula", which specifies the form of the linear model, in our case simply $Y \sim \text{Solar} + \text{Wind} + \text{week_type} + \text{season} + \text{year_d} + \text{Temp} + \text{TE} + \text{daily_var}$, and "data", which specifies which set of observations should be used to fit the model. The function then fits the model by computing the regression coefficients that minimize the value of $R^2$, as explained in the introduction.
 This model performs better than most of the other models we have tested, with the main trade off being its increased complexity. To select this model, we have tested several variations including the use of different variables, or transformations of the variables. Although slightly better results were obtained for some models, for example by implementing a dependency on the cubic root of the temperature, justified by plot (ADD REFERENCE), they were ultimately discarded, as the slight improvement in prediction accuracy was not enough to justify the significant increase in model complexity.
 ## Model performance
