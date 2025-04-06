@@ -151,6 +151,12 @@ heatmap
 
 ```
 
+Firstly what we see from this plot is that there are many variables that have exceptionally high correlation. Inspecting which pairs these are, we observe that many of these are defined as transformations of one another, which explains their exceptionally high correlation. A major example of this is the "TO" and "TE" relationship.
+
+We can see that the "year" variable has a moderate positive correlation to "demand_gross", and both "TO" and "TE" have a moderate negative correlation. These are some examples of how we might choose candidate models in order to improve upon the baseline model. 
+
+Below we have a plot of the average demand against year and against month respectively.
+
 
 ```{r demand_vs_time_plots, echo=FALSE, message=FALSE}
 SCS_demand_modelling <- SCS_demand_modelling %>%
@@ -179,6 +185,15 @@ SCS_demand_modelling %>%
   labs(title = "Average Demand by Month",
        x = "Month Index", y = "Average Demand")
 
+```
+
+From the yearly plot we observe a strong relationship between the year and the demand. Were we to plot Average Gross Demand as solely a function of year, we would conjecture some cyclical or polynomial relationship. However, the plot we observe here is sufficient for us to confidently include year as a coefficient in our candidate models going forwards.
+
+As the number of data points on the month scale was sufficiently low, we chose to use a bar plot instead of treating the time scale as continuous. 
+
+The most visible result here is the difference between the month of March and the other months. Qualitatively we can expect this, as March would be expected to be different in terms of weather to the other months for which we have data. It is reasonable to expect this to translate into the demand during this time.
+
+```{r temp_demand, echo=FALSE, message=FALSE}
 ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
   geom_point(alpha = 0.3) +
   geom_smooth(method = "loess", color = "red") +
@@ -187,8 +202,9 @@ ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
        x = "Temperature", y = "Gross Demand")
 
 ```
+A reasonable assumption would be to expect energy demand to decrease with temperature, as the energy required to heat homes is reduced. However, this plot sees a very weak negative correlation between the two. This implies that the variation in gross demand has very little dependency on temperature.
 
-
+However, through observation of the correlation matrix as well as comparison of model results with versus without the temperature variable, we have decided to keep it.
 
 ## Baseline Model
 The baseline model is the model used as a benchmark for all following models, it is given by:
