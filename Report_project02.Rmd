@@ -26,9 +26,51 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(library(tidyverse))
 theme_set(theme_bw())
 
-# To give the same random number sequence every time the document is knited,
+# To give the same random number sequence every time the document is knitted,
 # making it easier to discuss the specific numbers in the text:
 set.seed(12345L)
+```
+
+```{r data_cleaning, echo=FALSE}
+# import data
+SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
+SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
+
+
+
+vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex', 'year', 'TE')
+set1 <- select(SCS_demand_modelling, vars)
+
+set1 <- set1 |> 
+  # Removing outliers using IQR method
+  filter(Y >= quantile(Y, 0.25) - 1.5 * IQR(Y) & Y <= quantile(Y, 0.75) + 1.5 * IQR(Y)) |> 
+  # Adding cosine transformations
+  mutate(Cos_Day = cos(Day_Index)) |> 
+  mutate(Cos_Month = cos(Month_Index)) |> 
+  # Creating categorical variables
+  mutate(week_type = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
+                            levels = c(0, 1), 
+                            labels = c("Weekend", "Weekday"))) |> 
+  mutate(season = factor(ifelse(Month_Index %in% c(0, 1, 10, 11), 1, 0), 
+                         levels = c(0, 1), 
+                         labels = c("Not Winter", "Winter")))
+
+#convert Date from char to date
+set2 <- SCS_hourly_temp
+set2$Date <- as.POSIXct(set2$Date, format = "%d/%m/%Y %H:%M")
+
+#summarize to get daily averages and variances
+set2_sum <- set2 |> 
+  mutate(Date = as.Date(Date)) |> 
+  group_by(Date) |> 
+  summarise(
+    daily_avg = mean(temp),
+    daily_var = var(temp),
+    .groups = "drop"
+  )
+
+#merge with SCS_demand_modelling
+df <- left_join(set1, set2_sum, by = "Date")
 ```
 
 ```{r code=readLines("code.R"), eval=TRUE, echo=FALSE}
