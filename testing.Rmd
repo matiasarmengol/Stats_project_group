@@ -369,19 +369,13 @@ models <- list(
   Model_M5 = Model_M5
 )
 
-results <- list()
-for (model_name in names(models)) {
-  results[[model_name]] <- cross_validation_fixed(models[[model_name]], big_set, grouping = group_var, k=k)
-  # Print progress
-  cat("Completed cross-validation for", model_name, "\n")
-}
-View(results)
+source("code.R")
+cross_validate(Model_M0, selected)
 ```
 
 
 ### New modular cross-validation for each model
 ```{r modular-cross-validation}
-source("code_modular.R")
 
 group_var = "k-fold"
 k = 5

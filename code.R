@@ -101,12 +101,9 @@ cross_validate <- function(model, data,
   )
 
   # Create stratification variable based on analyse_by
-  strata_vars <- paste(
-    if ("Year" %in% analyse_by) "Year" else NULL,
-    if ("Month" %in% analyse_by) "Month" else NULL,
-    if ("Day" %in% analyse_by) "Day" else NULL
-  )
+  strata_vars <- analyse_by
   strata_vars <- strata_vars[strata_vars != ""]
+  print(strata_vars)
   
   # Create a combined stratification factor
   if (length(strata_vars) > 0) {
@@ -164,6 +161,8 @@ cross_validate <- function(model, data,
     
     # Validation data (current fold)
     val_data <- folds[[i]]
+    
+    print(str(val_data))
     
     # Train the model
     # Note: This assumes model is a formula-like specification
