@@ -80,8 +80,12 @@ df$year_d = abs((df$year) - 2005)
 ```
 
 ```{r models, echo=FALSE}
+# Define the baseline model M0
+M0 <- Y ~ Wind + Solar + Temp + Day_Index + Month_Index
+Model_M0 <- lm(M0, data = df)
+
 # Define M5, our chosen model
-M5 <- Y ~ Solar + Wind + is_weekday + is_weekend + year_d + Temp + TE + daily_var
+M5 <- Y ~ Solar + Wind + is_weekday + is_winter + year_d + Temp + TE + daily_var
 Model_M5 <- lm(M5, data = df)
 
 ```
