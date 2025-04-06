@@ -232,8 +232,8 @@ $$\text{is_winter}_i = \begin{cases} 0 & \text{if } i\text{ is in March} \\ 1 & 
 as figure (ADD REFERENCE) shows that gross demand in March differs significantly from any other month. Figure (ADD REFERENCE) indicates that a linear relationship between gross demand and year is not suitable. As a result, we constructed a new variable instead, "year_d" to model the dependence of gross demand on the year, this was defined as follows:
 $$\text{year}_{d_i} = |\text{year}_i - 2005|.$$
 Finally, to capture the effects of the variability of the temperature in a given day, we defined the variable "daily_var", as displayed below:
-$$\text{daily_var}_i = \widehat{Var}(\text{temp}_i) = .$$
-This information was extracted from the "SCS_hourly_temp" dataset, and $ \widehat{Var}(\text{temp}_i)$ is the estimated variance of all hourly temperature measurements from day $i$. The use of this dataset provides further insight of the relationship between gross demand and temperature, allowing our model to predict the former more accurately than if we had used temperature alone.
+$$\text{daily_var}_i = \widehat{Var}(\text{temp}_i) = \dfrac{1}{23}\sum_{j=1}^{24}(\text{temp}_{i,j} - \overline{\text{temp}_i})^2 .$$
+This information was extracted from the "SCS_hourly_temp" dataset, and $\widehat{Var}(\text{temp}_i)$ is the estimated variance of all hourly temperature measurements from day $i$, $\overline{\text{temp}_i}$ is the average hourly temperature of day $i$, and $\text{temp}_{i,j}$ is the temperature recorded at day $i$ and hour $j$. The use of this dataset provides further insight of the relationship between gross demand and temperature, allowing our model to predict the former more accurately than if we had used temperature alone.
 
 # Model fitting and cross-validation results
 ```{r Section 3 intsructions, echo = FALSE}
