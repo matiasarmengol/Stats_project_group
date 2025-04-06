@@ -178,7 +178,7 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
 ```
 <div style="height: 10px;"></div>
 From the yearly plot we observe a strong relationship between the year and the demand. Were we to plot Average Gross Demand as solely a function of year, we would conjecture some cyclical or polynomial relationship. However, the plot we observe here is sufficient for us to confidently include year as a coefficient in our candidate models going forwards.
-```{r demand_vs_month, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 3: Bar plot of average monthly gross demand against month, for the months of November, December, January, February and March. This highlights the significant different between March and the other months.'}
+```{r demand_vs_month, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 3: Bar plot of average monthly gross demand against month, for the months of January(0), February(1), March(2), November(10) and December(11). This highlights the significant difference between March and the other months.'}
 
 SCS_demand_modelling %>%
   group_by(monthindex) %>%
@@ -194,7 +194,19 @@ As the number of data points on the month scale was sufficiently low, we chose t
 
 The most visible result here is the difference between the month of March and the other months. Qualitatively we can expect this, as March would be expected to be different in terms of weather to the other months for which we have data. It is reasonable to expect this to translate into the demand during this time.
 
-```{r temp_demand, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 4: Scatter plot of gross demand against population weighted average tmeperature, showing a significant negative correlation.'}
+```{r demand_vs_day, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 4: Bar plot of average gross demand against day, for the days of the week, that is Sunday(0), Monday(1), Tuesday(2), Wednesday(3), Thursday(4), Friday(5) and Saturday(6). This highlights the difference between weekend days(Sunday and Saturday) and the other days.'}
+SCS_demand_modelling %>%
+  group_by(wdayindex) %>%
+  summarize(avg_demand = mean(demand_gross, na.rm = TRUE)) %>%
+  ggplot(aes(x = wdayindex, y = avg_demand)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Average Demand by Day of Week",
+       x = "Day of Week Index", y = "Average Demand")
+```
+<div style="height: 10px;"></div>
+
+```{r temp_demand, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: Scatter plot of gross demand against population weighted average tmeperature, showing a significant negative correlation.'}
 ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
   geom_point(alpha = 0.3) +
   geom_smooth(method = "loess", color = "red") +
