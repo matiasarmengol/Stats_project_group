@@ -194,7 +194,19 @@ As the number of data points on the month scale was sufficiently low, we chose t
 
 The most visible result here is the difference between the month of March and the other months. Qualitatively we can expect this, as March would be expected to be different in terms of weather to the other months for which we have data. It is reasonable to expect this to translate into the demand during this time.
 
-```{r temp_demand, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 4: Scatter plot of gross demand against population weighted average tmeperature, showing a significant negative correlation.'}
+```{r demand_vs_day, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 4: Bar plot of average gross demand against day, for the days of Sunday, Monday, Tuesday, Wednesday, Thursday, Friday and Sunday. This highlights the difference between weekend days(Sunday and Saturday) and the other days.'}
+SCS_demand_modelling %>%
+  group_by(wdayindex) %>%
+  summarize(avg_demand = mean(demand_gross, na.rm = TRUE)) %>%
+  ggplot(aes(x = wdayindex, y = avg_demand)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Average Demand by Day of Week",
+       x = "Day of Week Index", y = "Average Demand")
+```
+
+
+```{r temp_demand, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: Scatter plot of gross demand against population weighted average tmeperature, showing a significant negative correlation.'}
 ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
   geom_point(alpha = 0.3) +
   geom_smooth(method = "loess", color = "red") +
