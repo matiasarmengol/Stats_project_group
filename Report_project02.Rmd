@@ -23,6 +23,13 @@ knitr::opts_chunk$set(
   eval = TRUE
 )
 
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+library(lubridate)
+
 suppressPackageStartupMessages(library(tidyverse))
 theme_set(theme_bw())
 
@@ -111,8 +118,36 @@ We then constructed a $k$-fold cross validation scheme, to assess the performanc
 ```
 
 ## Data visualization and preprocessing
+To prepare our data for analysis, we began by dropping unneeded coefficients. This was a list that changed over the course of our improvements on our candidate model, as we made informed changes to our model versions. Below is an initial covariate matrix that we used to get an overview of which columns could provide information on our response variable.
 
+```{r covariate_matrix, echo=FALSE}
+numeric_vars <- SCS_demand_modelling %>%
+  select(-1, -Date)
 
+#Correlation matrix
+cor_matrix <- cor(numeric_vars, use = "pairwise.complete.obs")
+
+# Create a more readable table with rounded values
+cor_table <- round(cor_matrix, 3)
+
+# Reshape the correlation matrix for ggplot
+cor_data <- melt(cor_matrix)
+
+# Create heat-map with ggplot2
+heatmap <- ggplot(data = cor_data, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                        midpoint = 0, limit = c(-1,1), name = "Correlation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  coord_fixed() +
+  geom_text(aes(label = round(value, 2)), size = 3) +
+  labs(title = "Correlation Matrix for Demand Variables",
+       x = "", y = "")
+
+heatmap
+
+```
 
 
 ## Baseline Model
