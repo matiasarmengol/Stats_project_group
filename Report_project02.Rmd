@@ -148,6 +148,44 @@ heatmap
 ```
 
 
+```{r demand_vs_time_plots, echo=FALSE, message=FALSE}
+SCS_demand_modelling <- SCS_demand_modelling %>%
+  mutate(Date = as.Date(Date, format = "%Y-%m-%d"))
+
+# Aggregate data for yearly average
+demand_yearly <- SCS_demand_modelling %>%
+  group_by(year) %>%
+  summarise(avg_demand = mean(`demand_gross`, na.rm = TRUE))
+
+# Plot: Yearly Average Gross Demand vs. Year
+ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
+  geom_point(color = "darkblue") +
+  geom_smooth(color = "darkred") +
+  labs(title = "Yearly Average Gross Demand vs. Year",
+       x = "Year", y = "Average Gross Demand (MW)") +
+  theme_minimal()
+
+
+SCS_demand_modelling %>%
+  group_by(monthindex) %>%
+  summarize(avg_demand = mean(demand_gross, na.rm = TRUE)) %>%
+  ggplot(aes(x = monthindex, y = avg_demand)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Average Demand by Month",
+       x = "Month Index", y = "Average Demand")
+
+ggplot(SCS_demand_modelling, aes(x = temp, y = demand_gross)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "loess", color = "red") +
+  theme_minimal() +
+  labs(title = "Relationship Between Temperature and Demand",
+       x = "Temperature", y = "Gross Demand")
+
+```
+
+
+
 ## Baseline Model
 The baseline model is the model used as a benchmark for all following models, it is given by:
 $$Y_i = \beta_0 + \beta_1\text{wind}_i + \beta_2\text{solar}_i + \beta_3\text{temp}_i + \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i + \epsilon_i.$$
