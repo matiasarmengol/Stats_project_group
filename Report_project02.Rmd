@@ -93,7 +93,7 @@ source("code.R")
 #This section provides a brief introduction to the task and the datasets used. The introduction is intended to be #understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader #of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak #electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
 ```
 In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; SCS_demand_modelling.csv and SCS_hourly_temp. Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains the hourly population-weighted average temperature for each day. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
-$$ Y_i = \sum_{j=1}^m \beta_jX_j + \epsilon_i \text{, }\text{ }\text{ }\text{ } \epsilon_i \sim \mathcal{N}(0, \sigma^2),$$
+$$ Y_i = \beta_0 + \sum_{j=1}^m \beta_jX_j + \epsilon_i \text{, }\text{ }\text{ }\text{ } \epsilon_i \sim \mathcal{N}(0, \sigma^2),$$
 where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error(RMSE), given by:
 $$RMSE = \sqrt{\dfrac{1}{n}\sum_{i=1}^n (\hat{y_i} - y_i)^2},$$
 where y_i is is the observed gross demand at day $i$, and $\hat{y_i}$ is the gross demand predicted by the model at day $i$, given regression parameters $\beta_1, \cdots, \beta_m$, that is:
@@ -112,6 +112,9 @@ We then constructed a $k$-fold cross validation scheme, to assess the performanc
 
 ## Data visualization and preprocessing
 ## Baseline Model
+The baseline model is the model used as a benchmark for all following models, it is given by:
+$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i + \epsilon_i.$$
+This model does not perform well, moreover, its performance is highly dependent on the month, year and day of the observation. (ADD CROSS-VALIDATION RESULTS). This hints at the need to explore the relationship between gross demand and year, as well as refine the relationship between gross demand and "wdayindex" and "monthindex", as simply using a linear relationship for the previous two variables does not seem appropriate. 
 ## New variables
 In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in figure (ADD REFERENCE) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "week_type", defined below:
 $$\text{week_type}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 & \text{if } i\text{ is a weekend day}\end{cases}.$$
@@ -131,6 +134,9 @@ This information was extracted from the "SCS_hourly_temp" dataset, and $ \wideha
 ```
 
 ## Model overview
+We are now ready to introduce our model, which builds on the baseline model, while incorporating the new variables defined in the previous section, as following:
+$$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{week_type}_i + \beta_5\text{season}_i + \beta_6\text{year_d}_i + \beta_7\text{TE}_i + \beta_8\text{daily_var}_i + \epsilon_i.$$
+This model performs better than all most other models we have tested, with the main trade off being its increased complexity. To select this model, we have tested several variations including the use of different variables, or transformations of the variables. Although slightly better results were obtained for some models, for example by implementing a dependency on the cubic root of the temperature, they were ultimately discarded, as the slight improvement in prediction accuracy was not enough to justify the significant increase in model complexity.
 ## Model performance
 
 ## Compare winter
