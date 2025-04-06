@@ -252,8 +252,8 @@ This model performs better than most of the other models we have tested, with th
 ```{r base_cross_validation, echo=FALSE, eval=FALSE}
 source("code.R")
 
-M0_cv <- k_fold_cross_validate(M0, df, strat_vars = c("is_weekday", "is_winter"))
-M5_cv <- k_fold_cross_validate(M5, df, strat_vars = c("is_weekday", "is_winter"))
+M0_cv <- k_fold_cross_validate(Model_M0, df, strat_vars = c("is_weekday", "is_winter"))
+M5_cv <- k_fold_cross_validate(Model_M5, df, strat_vars = c("is_weekday", "is_winter"))
 
 
 ```
@@ -269,7 +269,7 @@ Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 
 ```{r compare_metrics, echo=FALSE}
 
 ggplot() +
-  geom_bar(mapping = )
+  geom_bar()
 
 ```
 

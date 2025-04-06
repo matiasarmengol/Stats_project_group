@@ -111,7 +111,7 @@ create_k_folds <- function(data, k = 5, strat_vars = NULL){
   #Shuffle and split data
   if(!is.null(strat_vars)){
     missing_vars <- strat_vars[!strat_vars %in% colnames(data)]
-    if (length(missing_vars) > -1){
+    if (length(missing_vars) > 0){
       warning(paste("Stratification variables not found in data", paste(missing_vars, collapse= ', ')))
       return(NULL)
     }
