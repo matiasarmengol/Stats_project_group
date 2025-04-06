@@ -246,17 +246,26 @@ This model performs better than most of the other models we have tested, with th
 ## Model performance
 ```{r base_cross_validation, echo=FALSE}
 source("code.R")
-<<<<<<< HEAD
 
-results <- cross_validate_model(Model_M5, df)
-summary <- summarize_cv_results(results)
-=======
 M0_cv <- k_fold_cross_validate(M0, df, strat_vars = c("is_weekday", "is_winter"))
 M5_cv <- k_fold_cross_validate(M5, df, strat_vars = c("is_weekday", "is_winter"))
->>>>>>> 5213bb72028e1367e09a2d0f35ecfa7641b8731b
+
+
 ```
 
+We use the function "k_fold_cross_validation()" to assess our model performance. The function works by splitting our data into k disjoint groups called 'folds'. Crucially because we have categorical variables present, we use stratified k-fold cross validation, which means that we keep the relative frequencies of each category present within each fold. This ensures that no fold is left with only one category level, and so therefore the model may always arrive at a coefficient for the categorical variable.
 
+We then assess the model's performance via RMSE, $R^2$ and $adj-R^2$ across all remaining $k-1$ folds. This value is then stored, and the process is repeated with the model being refitted on each of the $k$ folds. The average of each of these metrics is computed and returned in the output of the function. 
+
+For the baseline model discussed earlier, we note these key metrics. The overall adjusted $R^2$ metric is 0.06807436, which decreases slightly to 0.06134473 for the average adj-$R^2$ over each of our 5 folds. This model does not explain very much of the variation in the gross demand and therefore there is a lot of room for improvement.
+
+Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 0.7579201.The plot below compares these figures as well as the RMSE of each model. 
+
+```{r}
+
+
+
+```
 
 ## Compare winter
 We investigated the variation in maximum demand over the winter of 2013/14, with the weather conditions from previous winters.
