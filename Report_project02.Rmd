@@ -111,6 +111,10 @@ We then constructed a $k$-fold cross validation scheme, to assess the performanc
 ```
 
 ## Data visualization and preprocessing
+
+
+
+
 ## Baseline Model
 The baseline model is the model used as a benchmark for all following models, it is given by:
 $$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i + \epsilon_i.$$
@@ -184,9 +188,12 @@ ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   ) +
   theme_minimal()
 ```
-These plots above depict both the predicted demand itself and the difference between it and the observed conditions in 2013/14.\\
-The observed maximum demand over the winter of 2013/14 was $5243MW$. From the difference plot, we can see that the difference is typically negative - most years' weather conditions would decrease the demand over the winter, our model predicts. We do see that there are several cases where the difference is positive, and that the predicted demand is higher than observed. However, the average difference is $-262MW$ to the nearest $MW$. \\
-A qualitative interpretation of this is that 2013/14 had a particularly cold winter, or one that increased demand for some other factors. We can check directly what the average temperature in the winter of 2013/14.
+
+These plots above depict both the predicted demand itself and the difference between it and the observed conditions in 2013/14.
+
+The observed maximum demand over the winter of 2013/14 was 5243MW. From the difference plot, we can see that the difference is typically negative - most years' weather conditions would decrease the demand over the winter, our model predicts. We do see that there are several cases where the difference is positive, and that the predicted demand is higher than observed. However, the average difference is -262MW to the nearest MW.
+
+A qualitative interpretation of this is that 2013/14 had a winter that caused an increase in demand for some number of factors. A reasonable first assumption could be that there was a lower average during this winter. We can check directly what the average temperature in the winter of 2013/14.
 
 ```{r check_temp, include=FALSE}
 
@@ -200,7 +207,7 @@ print(this_average)
 print(all_average)
 
 ```
-
+Taking the average temperature over the 2013/14 winter we get 5.60 degrees (2dp.), as opposed to 4.77 degrees (2dp.) over the entire set. This is contrasting to our assumption, but there could be many reasons as to why the demand happened to be higher. This could be a potential limitation of the model, and we will discuss it in the dedicated section of this document.
 
 # Conclusion
 ```{r section 4 instructions}
