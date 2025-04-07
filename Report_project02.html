@@ -527,9 +527,11 @@ models, it is given by: <span class="math display">\[Y_i = \beta_0 +
 \beta_4\text{wdayindex}_i + \beta_5\text{monthindex}_i +
 \epsilon_i.\]</span> This model does not perform well, moreover, its
 performance is highly dependent on the month, year and day of the
-observation. (ADD REFERENCE TO CROSS-VALIDATION RESULTS). This hints at
-the need to explore the relationship between gross demand and year, as
-well as refine the relationship between gross demand and “wdayindex” and
+observation. Its unreliability when predicting from different months is
+evident in Figure (6), Figure (7) and Figure (8), showing significantly
+worse predictions for the month of March. This hints at the need to
+explore the relationship between gross demand and “year”, as well as
+refine the relationship between gross demand and “wdayindex” and
 “monthindex”, as simply using a linear relationship for the previous two
 variables does not seem appropriate.</p>
 </div>
@@ -637,6 +639,12 @@ Figure 7: Monthly RMSE between the baseline and final models.
 Figure 8: Monthly R-squared between the baseline and final models.
 </p>
 </div>
+<p>The above plots, highlight a significant weakness of our model: Its
+predictions are significantly worse for the month of December. This is
+probably attributed to factors that are not captured in our
+observations, such as holidays and transportation costs from increased
+travelling, as well as decreased electricity demand from office
+buildings.</p>
 </div>
 <div id="compare-winter" class="section level2">
 <h2>Compare winter</h2>
