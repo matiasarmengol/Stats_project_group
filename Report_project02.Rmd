@@ -245,8 +245,6 @@ source("code.R")
 
 M0_cv <- k_fold_cross_validate(Model_M0, df, strat_vars = c("is_weekday", "is_winter"))
 M5_cv <- k_fold_cross_validate(Model_M5, df, strat_vars = c("is_weekday", "is_winter"))
-
-
 ```
 
 We use the function "k_fold_cross_validation()" to assess our model performance. The function works by splitting our data into k disjoint groups called 'folds'. Crucially because we have categorical variables present, we use stratified k-fold cross validation, which means that we keep the relative frequencies of each category present within each fold. This ensures that no fold is left with only one category level, and therefore the model may always arrive at a coefficient for the categorical variable.
