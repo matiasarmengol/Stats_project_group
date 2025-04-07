@@ -255,7 +255,7 @@ We then assess the model's performance via RMSE, $R^2$ and $adj-R^2$ across all 
 
 For the baseline model discussed earlier, we note these key metrics. The overall adjusted $R^2$ metric is 0.06807436, which decreases slightly to 0.06134473 for the average adj-$R^2$ over each of our 5 folds. This model does not explain very much of the variation in the gross demand and therefore there is a lot of room for improvement.
 
-Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 0.7579201.The plot below compares these figures as well as the RMSE of each model. 
+Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 0.7579201.The plots below compare these figures as well as the RMSE of each model. 
 
 ```{r compare_metrics, echo=FALSE, message=FALSE, fig.align = 'center'}
 
@@ -271,9 +271,7 @@ overall_metrics <- data.frame(
 overall_long <- overall_metrics %>%
   pivot_longer(cols = c(M0, M5), names_to = "model", values_to = "value")
 
-# Assuming 'results_M0' and 'results_M5' are the outputs from k_fold_cross_validate function
-
-# Function to flatten the nested list structure
+# flatten the output for easier extraction
 flatten_cv_results <- function(results, model_name) {
   # Extract month performance metrics
   month_metrics <- results$month_performance
@@ -286,7 +284,7 @@ flatten_cv_results <- function(results, model_name) {
   
   # Loop through each month
   for (month_key in names(month_metrics)) {
-    # Extract month name (remove 'month_' prefix)
+    # Extract month name
     month_name <- sub("month_", "", month_key)
     
     # Get metrics for this month
@@ -316,12 +314,8 @@ flatten_cv_results <- function(results, model_name) {
 # facet the plot so we can have different scales 
 p1_faceted <- overall_long %>%
   ggplot(aes(x = model, y = value, fill = model)) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.9), width = 0.8) +
-  geom_text(aes(label = ifelse(metric == "RMSE", 
-                               sprintf("%.0f", value), 
-                               sprintf("%.3f", value))),
-            position = position_dodge(width = 0.9), vjust = -0.3, size = 3.5) +
-  scale_fill_manual(values = c("M0" = "#8884d8", "M5" = "#82ca9d")) +
+  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), width = 0.8) +
+  scale_fill_manual(values = c("M0" = "darkred", "M5" = "#82ca9d")) +
   facet_wrap(~ metric, scales = "free_y") +
   theme_minimal() +
   labs(title = "M0 vs M5 Model Performance Comparison",
@@ -335,20 +329,39 @@ p1_faceted <- overall_long %>%
         strip.background = element_rect(fill = "lightgray", color = NA),
         strip.text = element_text(face = "bold"))
 
-# manually add the values into a data frame
+
+
+
+
+p1_faceted
+
+```
+
+```{r}
+# Define the months in order
+month_keys <- c("month_11", "month_12", "month_01", "month_02", "month_03")
+month_names <- c("November", "December", "January", "February", "March")
+
+# Extract metrics using lapply
+M0_RMSE <- sapply(month_keys, function(m) M0_cv$month_performance[[m]]$rmse)
+M5_RMSE <- sapply(month_keys, function(m) M5_cv$month_performance[[m]]$rmse)
+M0_R2 <- sapply(month_keys, function(m) M0_cv$month_performance[[m]]$r2)
+M5_R2 <- sapply(month_keys, function(m) M5_cv$month_performance[[m]]$r2)
+
+# Create the data frame
 month_data <- data.frame(
-  month = c("November", "December", "January", "February", "March"),
-  M0_RMSE = c(4416.87, 5433.03, 4980.17, 4343.80, 4834.34),
-  M5_RMSE = c(1369.95, 4080.94, 2389.46, 1453.45, 1742.50),
-  M0_R2 = c(-0.010, 0.023, -0.085, 0.033, -0.148),
-  M5_R2 = c(0.903, 0.449, 0.750, 0.892, 0.851)
+  month = factor(month_names, levels = month_names),
+  M0_RMSE = M0_RMSE,
+  M5_RMSE = M5_RMSE,
+  M0_R2 = M0_R2,
+  M5_R2 = M5_R2
 )
 
-# Set month as a factor with levels in chronological order
+# make month a factor variable
 month_data$month <- factor(month_data$month, 
                           levels = c("November", "December", "January", "February", "March"))
 
-# Reshape monthly RMSE data
+# pivot for ggplot
 month_rmse_long <- month_data %>%
   select(month, M0_RMSE, M5_RMSE) %>%
   pivot_longer(cols = c(M0_RMSE, M5_RMSE), 
@@ -361,7 +374,7 @@ p2 <- ggplot(month_rmse_long, aes(x = month, y = RMSE, fill = model)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9), width = 0.8) +
   geom_text(aes(label = sprintf("%.0f", RMSE)),
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.2) +
-  scale_fill_manual(values = c("M0" = "#8884d8", "M5" = "#82ca9d")) +
+  scale_fill_manual(values = c("M0" = "darkred", "M5" = "#82ca9d")) +
   theme_minimal() +
   labs(title = "Monthly Performance (RMSE)",
        x = "",
@@ -371,7 +384,12 @@ p2 <- ggplot(month_rmse_long, aes(x = month, y = RMSE, fill = model)) +
         plot.title = element_text(hjust = 0.5, face = "bold"),
         axis.text.x = element_text(angle = 45, hjust = 1))
 
-# Reshape monthly R² data
+p2
+```
+
+
+```{r}
+# pivot for ggplot
 month_r2_long <- month_data %>%
   select(month, M0_R2, M5_R2) %>%
   pivot_longer(cols = c(M0_R2, M5_R2), 
@@ -379,12 +397,12 @@ month_r2_long <- month_data %>%
                values_to = "R2") %>%
   mutate(model = gsub("_R2", "", model))
 
-# Plot monthly R²
+# Plot
 p3 <- ggplot(month_r2_long, aes(x = month, y = R2, fill = model)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9), width = 0.8) +
   geom_text(aes(label = sprintf("%.3f", R2)),
             position = position_dodge(width = 0.9), vjust = ifelse(month_r2_long$R2 < 0, 1.5, -0.5), size = 3.2) +
-  scale_fill_manual(values = c("M0" = "#8884d8", "M5" = "#82ca9d")) +
+  scale_fill_manual(values = c("M0" = "darkred", "M5" = "#82ca9d")) +
   theme_minimal() +
   labs(title = "Monthly Performance (R^2)",
        x = "",
@@ -395,10 +413,7 @@ p3 <- ggplot(month_r2_long, aes(x = month, y = R2, fill = model)) +
         axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(-0.2, 1)
 
-p1_faceted
-p2
 p3
-
 ```
 
 ## Compare winter
