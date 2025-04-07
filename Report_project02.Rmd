@@ -106,11 +106,6 @@ where $y_i$ and $\hat{y_i}$ are as defined previously, and $\hat{y}$ is the mean
 We then constructed a $k$-fold cross validation scheme, to assess the performance of different models on unseen data. The cross validation scheme works by splitting the observations into $k$ groups of equal size, and using one of the groups to train the model, that is to determine the regression coefficients. With the coefficients fixed, the remaining $k-1$ groups are used to test the model, computing the value of $R^2$. The process is repeated $k$ times, training the model with a different group of each time, and computing the value of $R^2$ using the remaining groups. Our analysis provides a solid final model, that is able to explain a large portion of the variability in the data. We deduce that the variables given are enough to provide a satisfactory model, however a more accurate and reliable model could be obtained by having access to a more complete dataset, with a greater range of the data collected, as well as the inclusion of more variables, that may be influencing gross demand but are not captured by the variables provided. In the next section, we explore trends in the data as well as the baseline model provided, which is used as the starting point in our analysis.
 
 # Data description and exploratory analysis
-```{r Section 2 instructions, echo = FALSE}
-#Emphasis should be placed on the data features that are relevant for the subsequent modeling. Include visualizations that #help illustrate key patterns or relationships. All plots must also be described in the write up. Think carefully about #whether each plot needs to be included in your final draft. Your report should include figures and tables but they should #be as focused and impactful as possible.
-
-#Clearly describe all preprocessing steps, including any transformations or new variables created. If the additional #dataset (`SCS_hourly_temp.csv` ) is used, provide a concise explanation of its structure and relevance to the analysis.
-```
 
 ## Data visualization and pre-processing
 To prepare our data for analysis, we began by dropping unneeded coefficients. This was a list that changed over the course of our improvements on our candidate model, as we made informed changes to our model versions. Below is an initial covariate matrix that we used to get an overview of which columns could provide information on our response variable.
@@ -227,11 +222,6 @@ $$\text{daily_var}_i = \widehat{Var}(\text{temp}_i) = \dfrac{1}{23}\sum_{j=1}^{2
 This information was extracted from the "SCS_hourly_temp" dataset, and $\widehat{Var}(\text{temp}_i)$ is the estimated variance of all hourly temperature measurements from day $i$, $\overline{\text{temp}_i}$ is the average hourly temperature of day $i$, and $\text{temp}_{i,j}$ is the temperature recorded at day $i$ and hour $j$. The use of this dataset provides further insight of the relationship between gross demand and temperature, allowing our model to predict the former more accurately than if we had used temperature alone.
 
 # Model fitting and cross-validation results
-```{r Section 3 intsructions, echo = FALSE}
-#In this section you should detail your choice of model and describe the process used to refine and fit the model. You are #encouraged to explore different models methods but you should not include a detailed narrative of all of these attempts. #For instance, you can mention the approaches you tried tried and include a comparison but do not add in depth discussions #of these models beyond why they were rejected. This section should mention the methods explored and why they were #rejected, but most of your effort should go into describing the model you are using and your process for tuning and #validating it.
-
-#Provide implementation details and include results from cross-validation or other model evaluation techniques, #highlighting improvements and any trade-offs.
-```
 
 ## Model overview
 We are now ready to introduce our model, which builds on the baseline model, while incorporating the new variables defined in the previous section, as following:
@@ -255,7 +245,7 @@ For the baseline model discussed earlier, we note these key metrics. The overall
 
 Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 0.7579201.The plots below compare these figures as well as the RMSE of each model. 
 
-```{r compare_metrics, echo=FALSE, message=FALSE, fig.align = 'center'}
+```{r compare_metrics, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap= 'Figure 6: A plot comparing three key performance metrics of the baseline and final models'}
 
 
 #make a dataframe from the output of the cross-validation function
@@ -331,7 +321,7 @@ p1_faceted
 
 ```
 
-```{r monthly_rmse, echo=FALSE}
+```{r monthly_rmse, echo=FALSE, fig.align='center', fig.cap='Figure 7: Monthly RMSE between the baseline and final models'}
 # Define the months in order
 month_keys <- c("month_11", "month_12", "month_01", "month_02", "month_03")
 month_names <- c("November", "December", "January", "February", "March")
@@ -382,7 +372,7 @@ p2
 ```
 
 
-```{r monthly_r^2, echo=FALSE}
+```{r monthly_r^2, echo=FALSE, fig.align='center', fig.cap='Figure 8: Monthly R-squared between the baseline and final models}
 # pivot for ggplot
 month_r2_long <- month_data %>%
   select(month, M0_R2, M5_R2) %>%
@@ -416,7 +406,7 @@ We investigated the variation in maximum demand over the winter of 2013/14, with
 The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the time-dependent variables ('year_d', 'is_weekday') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
   
-```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: How maximum demand is projected to vary with weather conditions from previous years'}
+```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 9: How maximum demand is projected to vary with weather conditions from previous years'}
 source("code_modular.R")
 
 years <- 1991:2012
@@ -445,7 +435,7 @@ ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
   theme_minimal()
 ```
 <div style="height: 10px;"></div>
-```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 6: How the difference between projected maximum demand and observed maximum demand varies with weather conditions from previous years'}
+```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 10: How the difference between projected maximum demand and observed maximum demand varies with weather conditions from previous years'}
 # Plot 2: Predicted Difference
 ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   geom_point() +
@@ -476,21 +466,13 @@ print(this_average)
 print(all_average)
 
 ```
-Taking the average temperature over the 2013/14 winter we get 5.60 degrees (2dp.), as opposed to 4.77 degrees (2dp.) over the entire set. This is contrasting to our assumption, but there could be many reasons as to why the demand happened to be higher. This could be a potential limitation of the model, and we will discuss it in the dedicated section of this document.
+Taking the average temperature over the 2013/14 winter we get 5.60 degrees (2dp.), as opposed to 4.77 degrees (2dp.) over the entire set. This is contrasting to our assumption, but there could be many reasons as to why the demand happened to be higher. This could be a potential limitation of the model. These are discussed below.
 
 # Conclusion
-```{r section 4 instructions, echo = FALSE}
-#Summarize here the key insights from your analysis, focusing on the final model’s predictive performance, reliability, and #practical relevance for NESO. Discuss the importance of the selected covariates, as well as any observed limitations or #assumptions that should be considered when applying the model in practice.
-
-#Emphasize how your model can support NESO's long-term planning goals. If the model underperforms in some respects, provide #a clear and well-reasoned explanation. Keep in mind that a negative result, i.e. a model that does not work well #predictively, that is well explained and justified in terms of why it failed will likely receive higher marks than a model #with strong predictive performance but with poor or incorrect explanations and justifications. In other words, sound #reasoning and transparency will be valued more than overclaiming results.
-```
 
 Overall, our model performs well, and it achieves equally strong predictions in different time periods, with prediction accuracy being similar across all months and days of the week. A main limitation of the model is the relationship chosen between gross demand and "year". This is because the average yearly gross demand seems to increase steadily from 1991 to 2005, and then starts steadily dropping after 2005. The fact that the model was trained on only 10 years of data after 2005, makes it difficult to predict how the average yearly gross demand will behave in subsequent years. It could for example, start increasing again, thus making the period from 2005 to 2015 simply an exception to an otherwise linear trend. It could also be that the pattern is periodic, driven by the periodic nature of the economy. At the end we decided that average yearly gross demand is likely to continue dropping, driven by factors such as increased environmental awareness, increased availability and efficiency of renewable, non centralized sources and declining population growth. However the accuracy of our model's predictions in future years is strongly dependent on this relationship, which we cannot predict with confidence with the data given. As a result, the model's predictions are likely to become less accurate as the year of the observation strays further away from 2015. However, as long as the year of the observation is not too far from 2015, we expect the model to provide valuable and accurate insight on the gross demand. This means that our model will allow NESO to accurately predict future gross demand, provided that the model is not being used too far into the future(after 2015), allowing them to anticipate future changes in demand, and efficiently plan and allocate resources to ensure that the gross demand is reliably met. 
 
 # Code Appendix
-```{r section 5 instructions, echo = FALSE}
-#Include here all the code used in your analysis. Ensure that the code is well-commented so it is easy to follow and reuse.
-```
 In this section, we provide the documentation for all the functions created and used in this report.
 
 ```{r code=readLines("code.R"), eval=FALSE, echo=TRUE}
