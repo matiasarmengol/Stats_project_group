@@ -446,3 +446,38 @@ k_fold_cross_validate <- function(model, data,
   
   return(results)
 }
+
+compare_winter <- function(model, data, other_year) {
+  #' @title Compare maximum demand in 2013/14 winter with projections based on different weather conditions
+  #' @description Use weather data from another year to generate a prediction for the maximum demand
+  #' @param model A linear model object
+  #' @param data A dataframe
+  #' @param other_year The year whose weather data we wish to use
+  
+  #obtain the actual maximum gross demand from the 2013/14 winter
+  control_set <- data |> 
+    filter((year == "2013" & Month_Index %in% c(10, 11)) | (year == "2014" & Month_Index %in% c(0, 1, 2)))
+  control_max <- max(control_set$Y)
+  
+  #create our specified set to predict on
+  other_set <- data |> 
+    filter((year == as.character(other_year) & Month_Index %in% c(10, 11)) | (year == as.character(as.numeric(other_year) + 1) & Month_Index %in% c(0, 1, 2))) |> 
+    mutate(
+      year = case_when(
+        year == as.character(other_year) ~ 2013,
+        year == as.character(as.numeric(other_year) + 1) ~ 2014,
+        TRUE ~ year #don't break if it's not one of the above
+      )
+    ) |> 
+    mutate(year_d = abs(as.numeric(year) - 2005)) |> 
+    mutate(week_type = factor(ifelse(Day_Index %in% c(0, 6), 0, 1), 
+                              levels = c(0, 1), 
+                              labels = c("Weekend", "Weekday")))
+  
+  #predict the demand based on our newly defined set and extract the maximum
+  #print(head(other_set)) # debugging
+  prediction <- predict(model, newdata = other_set)
+  max_predicted <- max(prediction, na.rm = TRUE)
+  
+  return(list(control_max = control_max, max_predicted = max_predicted))
+}
