@@ -1,6 +1,6 @@
 ---
 title: "Modelling Peak Electricity Demand in Great Britain"
-subtitle: "Word count: "
+subtitle: "Word count: 2,345 words"
 author: "Group 47, Matias Armengol(s2286042), Fergus Fleming(s2185709), Adithya Kumar(s2278709)"
 output:
   html_document:
