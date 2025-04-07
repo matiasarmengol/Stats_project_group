@@ -13,10 +13,6 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
-# Modify this setup code chunk to set options
-# or add extra packages etc if needed.
-# See the project instructions for more details
-# on what code to show, and where/how.
 
 # Set default code chunk options
 knitr::opts_chunk$set(
@@ -44,8 +40,6 @@ set.seed(12345L)
 # import data
 SCS_demand_modelling <- read_csv("Project02/SCS_demand_modelling.csv")
 SCS_hourly_temp <- read_csv("Project02/SCS_hourly_temp.csv")
-
-
 
 vars <- c('Y'='demand_gross', 'Date', 'Wind'='wind', 'Solar'='solar_S', 'Temp'='temp', 'Day_Index'='wdayindex', 'Month_Index'='monthindex', 'year', 'TE')
 set1 <- select(SCS_demand_modelling, vars)
@@ -100,19 +94,16 @@ source("code.R")
 
 
 # Introduction
-```{r Introduction instructions, echo = FALSE}
-#This section provides a brief introduction to the task and the datasets used. The introduction is intended to be #understood by NESO analysts with a scientific background but limited statistical expertise. You can assume that the reader #of your report has read the executive summary. Briefly outline the overall approach taken in modeling future daily peak #electricity demand, describe the main steps involved, and summarize the key conclusions drawn from the analysis.
-```
-In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; "SCS_demand_modelling.csv" and "SCS_hourly_temp". Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains the hourly population-weighted average temperature for each day. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
+In this report, we aim to model the daily peak demand of electricity in Great Britain. We are provided two data sets; "SCS_demand_modelling.csv" and "SCS_hourly_temp". Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, recorded at 6pm, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains the hourly population-weighted average temperature for each day. Throughout our analysis we assume that daily demand peaks at 6pm, thus allowing us to use the gross demand variable and peak gross demand interchangeably. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
 $$ Y_i = \beta_0 + \sum_{j=1}^m \beta_jX_j + \epsilon_i \text{, }\text{ }\text{ }\text{ } \epsilon_i \sim \mathcal{N}(0, \sigma^2),$$
-where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error (RMSE), given by:
+where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error ($RMSE$), given by:
 $$RMSE = \sqrt{\dfrac{1}{n}\sum_{i=1}^n (\hat{y_i} - y_i)^2},$$
-where y_i is is the observed gross demand at day $i$, and $\hat{y_i}$ is the gross demand predicted by the model at day $i$, given regression parameters $\beta_1, \cdots, \beta_m$, that is:
+where $y_i$ is is the observed gross demand at day $i$, and $\hat{y_i}$ is the gross demand predicted by the model at day $i$, given regression parameters $\beta_1, \cdots, \beta_m$, that is:
 $$\hat{y_i} = \sum_{j=1}^m \beta_jx_j.$$
 Choosing the regression coefficients this way ensures that the average distance between the observed gross demand and the predicted gross demand is kept as low as possible, thus reducing the uncertainty in its predictions. The main challenge of this investigation was the choice of covariates to use, thus we tested several models, with different covariates. To compare their performance, we employed a measure of the portion of total variability explained by the model, $R^2$, defined as follows:
 $$R^2 = 1 - \dfrac{\sum_{i=1}^n(y_i - \hat{y_i})^2}{\sum_{i=1}^n(y_i - \bar{y})^2},$$
 where $y_i$ and $\hat{y_i}$ are as defined previously, and $\hat{y}$ is the mean of all observations of the gross demand.
-We then constructed a $k$-fold cross validation scheme, to assess the performance of different models on unseen data. The cross validation scheme works by splitting the observations into $k$ groups of equal size, and using one of the groups to train the model, that is to determine the regression coefficients. With the coefficients fixed, the remaining $k-1$ groups are used to test the model, computing the value of $R^2$. The process is repeated $k$ times, training the model with a different group of each time, and computing the value of $R^2$ using the remaining groups. In the next section, we explore trends in the data as well as the baseline model provided, which is used as the starting point in our analysis.
+We then constructed a $k$-fold cross validation scheme, to assess the performance of different models on unseen data. The cross validation scheme works by splitting the observations into $k$ groups of equal size, and using one of the groups to train the model, that is to determine the regression coefficients. With the coefficients fixed, the remaining $k-1$ groups are used to test the model, computing the value of $R^2$. The process is repeated $k$ times, training the model with a different group of each time, and computing the value of $R^2$ using the remaining groups. Our analysis provides a solid final model, that is able to explain a large portion of the variability in the data. We deduce that the variables given are enough to provide a satisfactory model, however a more accurate and reliable model could be obtained by having access to a more complete dataset, with a greater range of the data collected, as well as the inclusion of more variables, that may be influencing gross demand but are not captured by the variables provided. In the next section, we explore trends in the data as well as the baseline model provided, which is used as the starting point in our analysis.
 
 # Data description and exploratory analysis
 ```{r Section 2 instructions, echo = FALSE}
@@ -156,7 +147,7 @@ heatmap
 Firstly what we see from this plot is that there are many variables that have exceptionally high correlation. Inspecting which pairs these are, we observe that many of these are defined as transformations of one another, which explains their exceptionally high correlation. A major example of this is the "TO" and "TE" relationship.
 
 We can see that the "year" variable has a moderate positive correlation to "demand_gross", and both "TO" and "TE" have a moderate negative correlation. These are some examples of how we might choose candidate models in order to improve upon the baseline model. 
-The following plots; Figure 2, Figure 3, Figure 4 and Figure 5 provide insight on the precise nature of the relationship between gross demand and year, month, day and temperature respectively. These plots were instrumental in informing our choice of model.
+The following plots; Figure (2), Figure (3), Figure (4) and Figure (5) provide insight on the precise nature of the relationship between gross demand and year, month, day and temperature respectively. These plots were instrumental in informing our choice of model.
 
 ```{r demand_vs_year, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figre 2: Plot of average yearly gross demand against year, highlighting their non-linear relationship.'}
 SCS_demand_modelling <- SCS_demand_modelling %>%
@@ -230,7 +221,7 @@ $$\text{is_weekday}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 
 Similarly, we created another categorical variable, "is_winter", defined as follows:
 $$\text{is_winter}_i = \begin{cases} 0 & \text{if } i\text{ is in March} \\ 1 & \text{otherwise}\end{cases},$$
 as Figure (3) shows that gross demand in March differs significantly from any other month. Figure (2) indicates that a linear relationship between gross demand and year is not suitable. As a result, we constructed a new variable instead, "year_d" to model the dependence of gross demand on the year, this was defined as follows:
-$$\text{year}_{d_i} = |\text{year}_i - 2005|.$$
+$$\text{year_d}_{i} = |\text{year}_i - 2005|.$$
 Finally, to capture the effects of the variability of the temperature in a given day, we defined the variable "daily_var", as displayed below:
 $$\text{daily_var}_i = \widehat{Var}(\text{temp}_i) = \dfrac{1}{23}\sum_{j=1}^{24}(\text{temp}_{i,j} - \overline{\text{temp}_i})^2 .$$
 This information was extracted from the "SCS_hourly_temp" dataset, and $\widehat{Var}(\text{temp}_i)$ is the estimated variance of all hourly temperature measurements from day $i$, $\overline{\text{temp}_i}$ is the average hourly temperature of day $i$, and $\text{temp}_{i,j}$ is the temperature recorded at day $i$ and hour $j$. The use of this dataset provides further insight of the relationship between gross demand and temperature, allowing our model to predict the former more accurately than if we had used temperature alone.
@@ -413,7 +404,7 @@ p3
 ## Compare winter
 We investigated the variation in maximum demand over the winter of 2013/14, with the weather conditions from previous winters.
 
-The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the year-dependent variables ('year_d, week_type') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
+The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the time-dependent variables ('year_d', 'is_weekday') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
   
 ```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: How maximum demand is projected to vary with weather conditions from previous years'}
@@ -445,7 +436,7 @@ ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
   theme_minimal()
 ```
 <div style="height: 10px;"></div>
-```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 6: how the difference between projected maximum demand and observed maximum demand varies with weather conditions from previous years'}
+```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 6: How the difference between projected maximum demand and observed maximum demand varies with weather conditions from previous years'}
 # Plot 2: Predicted Difference
 ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   geom_point() +
