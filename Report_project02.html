@@ -1182,13 +1182,13 @@ k_fold_cross_validate &lt;- function(model, data,
   return(results)
 }
 
+#&#39; @title Compare maximum demand in 2013/14 winter with projections based on different weather conditions
+#&#39; @description Use weather data from another year to generate a prediction for the maximum demand
+#&#39; @param model A linear model object
+#&#39; @param data A dataframe
+#&#39; @param other_year The year whose weather data we wish to use
 compare_winter &lt;- function(model, data, other_year) {
-  #&#39; @title Compare maximum demand in 2013/14 winter with projections based on different weather conditions
-  #&#39; @description Use weather data from another year to generate a prediction for the maximum demand
-  #&#39; @param model A linear model object
-  #&#39; @param data A dataframe
-  #&#39; @param other_year The year whose weather data we wish to use
-  
+    
   #obtain the actual maximum gross demand from the 2013/14 winter
   control_set &lt;- data |&gt; 
     filter((year == &quot;2013&quot; &amp; Month_Index %in% c(10, 11)) | (year == &quot;2014&quot; &amp; Month_Index %in% c(0, 1, 2)))
