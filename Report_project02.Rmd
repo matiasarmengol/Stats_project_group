@@ -249,11 +249,11 @@ M5_cv <- k_fold_cross_validate(Model_M5, df, strat_vars = c("is_weekday", "is_wi
 
 We use the function "k_fold_cross_validation()" to assess our model performance. The function works by splitting our data into k disjoint groups called 'folds'. Crucially because we have categorical variables present, we use stratified k-fold cross validation, which means that we keep the relative frequencies of each category present within each fold. This ensures that no fold is left with only one category level, and therefore the model may always arrive at a coefficient for the categorical variable.
 
-We then assess the model's performance via RMSE, $R^2$ and $adj-R^2$ across all remaining $k-1$ folds. This value is then stored, and the process is repeated with the model being refitted on each of the $k$ folds. The average of each of these metrics is computed and returned in the output of the function. 
+We then assess the model's performance via $RMSE$, $R^2$ and $adj-R^2$ across all remaining $k-1$ folds. This value is then stored, and the process is repeated with the model being refitted on each of the $k$ folds. The average of each of these metrics is computed and returned in the output of the function. 
 
-For the baseline model discussed earlier, we note these key metrics. The overall adjusted $R^2$ metric is 0.06807436, which decreases slightly to 0.06134473 for the average adj-$R^2$ over each of our 5 folds. This model does not explain very much of the variation in the gross demand and therefore there is a lot of room for improvement.
+For the baseline model discussed earlier, we note these key metrics. The overall adjusted $R^2$ metric is 0.068, which decreases slightly to 0.061 for the average $adj-R^2$ over each of our 5 folds. This model does not explain very much of the variation in the gross demand and therefore there is a lot of room for improvement.
 
-Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 0.7579201.The plots below compare these figures as well as the RMSE of each model. 
+Our final model has an overall adjusted $R^2$ of 0.762 and a 5-fold-average of 0.758. The plots below compare these figures as well as the RMSE of each model. 
 
 ```{r compare_metrics, echo=FALSE, message=FALSE, fig.align = 'center'}
 
