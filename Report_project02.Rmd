@@ -270,16 +270,58 @@ Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 
 
 #make a dataframe from the output of the cro
 overall_metrics <- data.frame(
-  metric = c("RMSE", "R²", "Adjusted R²"),
-  M0 = c(4824.76, 0.066, 0.060),
+  metric = c("RMSE", "R^2", "Adjusted R^2"),
+  M0 = c(4824.76, 0.066, 0.060), # add values manually because function output is strange and just 3 values
   M5 = c(2434.37, 0.762, 0.759)
 )
 
-# Reshape data for ggplot
+# pivot longer for ggplot
 overall_long <- overall_metrics %>%
   pivot_longer(cols = c(M0, M5), names_to = "model", values_to = "value")
 
-# Create the faceted comparison plot (with appropriate scales)
+# Assuming 'results_M0' and 'results_M5' are the outputs from k_fold_cross_validate function
+
+# Function to flatten the nested list structure
+flatten_cv_results <- function(results, model_name) {
+  # Extract month performance metrics
+  month_metrics <- results$month_performance
+  
+  # Create empty lists to store data
+  month_list <- character()
+  metric_type <- character()
+  metric_value <- numeric()
+  model <- character()
+  
+  # Loop through each month
+  for (month_key in names(month_metrics)) {
+    # Extract month name (remove 'month_' prefix)
+    month_name <- sub("month_", "", month_key)
+    
+    # Get metrics for this month
+    metrics <- month_metrics[[month_key]]
+    
+    # Add each metric to our lists
+    for (metric_name in names(metrics)) {
+      month_list <- c(month_list, month_name)
+      metric_type <- c(metric_type, metric_name)
+      metric_value <- c(metric_value, metrics[[metric_name]])
+      model <- c(model, model_name)
+    }
+  }
+  
+  # Create data frame
+  df <- data.frame(
+    month = month_list,
+    metric = metric_type,
+    value = metric_value,
+    model = model,
+    stringsAsFactors = FALSE
+  )
+  
+  return(df)
+}
+
+# facet the plot so we can have different scales 
 p1_faceted <- overall_long %>%
   ggplot(aes(x = model, y = value, fill = model)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9), width = 0.8) +
@@ -301,7 +343,7 @@ p1_faceted <- overall_long %>%
         strip.background = element_rect(fill = "lightgray", color = NA),
         strip.text = element_text(face = "bold"))
 
-# Monthly performance data - with months in chronological order
+# manually add the values into a data frame
 month_data <- data.frame(
   month = c("November", "December", "January", "February", "March"),
   M0_RMSE = c(4416.87, 5433.03, 4980.17, 4343.80, 4834.34),
@@ -352,9 +394,9 @@ p3 <- ggplot(month_r2_long, aes(x = month, y = R2, fill = model)) +
             position = position_dodge(width = 0.9), vjust = ifelse(month_r2_long$R2 < 0, 1.5, -0.5), size = 3.2) +
   scale_fill_manual(values = c("M0" = "#8884d8", "M5" = "#82ca9d")) +
   theme_minimal() +
-  labs(title = "Monthly Performance (R²)",
+  labs(title = "Monthly Performance (R^2)",
        x = "",
-       y = "R²",
+       y = "R^2",
        fill = "Model") +
   theme(legend.position = "bottom",
         plot.title = element_text(hjust = 0.5, face = "bold"),
