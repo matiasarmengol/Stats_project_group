@@ -245,8 +245,6 @@ source("code.R")
 
 M0_cv <- k_fold_cross_validate(Model_M0, df, strat_vars = c("is_weekday", "is_winter"))
 M5_cv <- k_fold_cross_validate(Model_M5, df, strat_vars = c("is_weekday", "is_winter"))
-
-
 ```
 
 We use the function "k_fold_cross_validation()" to assess our model performance. The function works by splitting our data into k disjoint groups called 'folds'. Crucially because we have categorical variables present, we use stratified k-fold cross validation, which means that we keep the relative frequencies of each category present within each fold. This ensures that no fold is left with only one category level, and therefore the model may always arrive at a coefficient for the categorical variable.
@@ -329,20 +327,16 @@ p1_faceted <- overall_long %>%
         strip.background = element_rect(fill = "lightgray", color = NA),
         strip.text = element_text(face = "bold"))
 
-
-
-
-
 p1_faceted
 
 ```
 
-```{r}
+```{r monthly_rmse}
 # Define the months in order
 month_keys <- c("month_11", "month_12", "month_01", "month_02", "month_03")
 month_names <- c("November", "December", "January", "February", "March")
 
-# Extract metrics using lapply
+# Extract metrics using sapply
 M0_RMSE <- sapply(month_keys, function(m) M0_cv$month_performance[[m]]$rmse)
 M5_RMSE <- sapply(month_keys, function(m) M5_cv$month_performance[[m]]$rmse)
 M0_R2 <- sapply(month_keys, function(m) M0_cv$month_performance[[m]]$r2)
@@ -388,7 +382,7 @@ p2
 ```
 
 
-```{r}
+```{r monthly_r^2}
 # pivot for ggplot
 month_r2_long <- month_data %>%
   select(month, M0_R2, M5_R2) %>%
