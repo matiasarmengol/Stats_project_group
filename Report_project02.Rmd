@@ -372,7 +372,7 @@ p2
 ```
 
 
-```{r monthly_r^2, echo=FALSE, fig.align='center', fig.cap='Figure 8: Monthly R-squared between the baseline and final models}
+```{r monthly_r^2, echo=FALSE, fig.align='center', fig.cap='Figure 8: Monthly R-squared between the baseline and final models'}
 # pivot for ggplot
 month_r2_long <- month_data %>%
   select(month, M0_R2, M5_R2) %>%
