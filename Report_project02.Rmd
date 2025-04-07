@@ -245,7 +245,7 @@ For the baseline model discussed earlier, we note these key metrics. The overall
 
 Our final model has an overall adjusted $R^2$ of 0.762 and a 5-fold-average of 0.758. The plots below compare these figures as well as the RMSE of each model. 
 
-```{r compare_metrics, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap= 'Figure 6: A plot comparing three key performance metrics of the baseline and final models'}
+```{r compare_metrics, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap= 'Figure 6: A plot comparing three key performance metrics of the baseline and final models.'}
 
 
 #make a dataframe from the output of the cross-validation function
@@ -321,7 +321,7 @@ p1_faceted
 
 ```
 
-```{r monthly_rmse, echo=FALSE, fig.align='center', fig.cap='Figure 7: Monthly RMSE between the baseline and final models'}
+```{r monthly_rmse, echo=FALSE, fig.align='center', fig.cap='Figure 7: Monthly RMSE between the baseline and final models.'}
 # Define the months in order
 month_keys <- c("month_11", "month_12", "month_01", "month_02", "month_03")
 month_names <- c("November", "December", "January", "February", "March")
@@ -372,7 +372,7 @@ p2
 ```
 
 
-```{r monthly_r^2, echo=FALSE, fig.align='center', fig.cap='Figure 8: Monthly R-squared between the baseline and final models'}
+```{r monthly_r^2, echo=FALSE, fig.align='center', fig.cap='Figure 8: Monthly R-squared between the baseline and final models.'}
 # pivot for ggplot
 month_r2_long <- month_data %>%
   select(month, M0_R2, M5_R2) %>%
@@ -406,7 +406,7 @@ We investigated the variation in maximum demand over the winter of 2013/14, with
 The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the time-dependent variables ('year_d', 'is_weekday') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
   
-```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 9: How maximum demand is projected to vary with weather conditions from previous years'}
+```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 9: How maximum demand is projected to vary with weather conditions from previous years.'}
 source("code_modular.R")
 
 years <- 1991:2012
@@ -435,7 +435,7 @@ ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
   theme_minimal()
 ```
 <div style="height: 10px;"></div>
-```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 10: How the difference between projected maximum demand and observed maximum demand varies with weather conditions from previous years'}
+```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 10: How the difference between projected maximum demand and observed maximum demand varies with weather conditions from previous years.'}
 # Plot 2: Predicted Difference
 ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   geom_point() +
