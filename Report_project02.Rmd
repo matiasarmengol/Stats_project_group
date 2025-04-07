@@ -1,5 +1,6 @@
 ---
 title: "Modelling Peak Electricity Demand in Great Britain"
+subtitle: "Word count: "
 author: "Group 47, Matias Armengol(s2286042), Fergus Fleming(s2185709), Adithya Kumar(s2278709)"
 output:
   html_document:
@@ -104,7 +105,7 @@ source("code.R")
 ```
 In this report, we aim to model the daily peak demand of electricity in Great Britain, assuming that this peak always occurs at 6pm. We are provided two data sets; "SCS_demand_modelling.csv" and "SCS_hourly_temp". Both data sets contain information for the years from 1991 to 2005, and the months of November, December, January, February and March. The former contains general data for each day, such as gross demand, population-weighted average temperature, estimated capacity factor of wind and solar generation and date. The latter contains the hourly population-weighted average temperature for each day. Our aim is to use a linear model, with gross demand(Y) as the response variable, and a selection of covariates either chosen from the data sets, or obtained through some transformation. That is, we want a model of the form:
 $$ Y_i = \beta_0 + \sum_{j=1}^m \beta_jX_j + \epsilon_i \text{, }\text{ }\text{ }\text{ } \epsilon_i \sim \mathcal{N}(0, \sigma^2),$$
-where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error(RMSE), given by:
+where $Y_i$ is the gross demand at day $i$, and $\{X_1, \cdots, X_m\}$ is a set of covariates obtained as explained above, and $\beta_1, \cdots, \beta_m$ are the regression coefficients, and $\epsilon_i$ is the error at day $i$. The regression coefficients are chosen to minimize the root mean squared error (RMSE), given by:
 $$RMSE = \sqrt{\dfrac{1}{n}\sum_{i=1}^n (\hat{y_i} - y_i)^2},$$
 where y_i is is the observed gross demand at day $i$, and $\hat{y_i}$ is the gross demand predicted by the model at day $i$, given regression parameters $\beta_1, \cdots, \beta_m$, that is:
 $$\hat{y_i} = \sum_{j=1}^m \beta_jx_j.$$
@@ -175,7 +176,7 @@ ggplot(demand_yearly, aes(x = year, y = avg_demand)) +
   theme_minimal()
 ```
 <div style="height: 10px;"></div>
-From the plot presented above, we observe a strong relationship between the year and the demand. We plotted average gross demand as solely a function of year, thus we initially conjectured some cyclical or polynomial relationship. However, the plot we observe here is sufficient for us to confidently include year as a covariate in our candidate models going forwards.
+From the plot presented above, we observe a strong relationship between the year and the average yearly gross demand. We plotted average gross demand as solely a function of year, thus we initially conjectured some cyclical or polynomial relationship. However, the plot we observe here is sufficient for us to confidently include year as a covariate in our candidate models going forwards.
 
 ```{r demand_vs_month, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 3: Bar plot of average monthly gross demand against month, for the months of January(0), February(1), March(2), November(10) and December(11). This highlights the significant difference between March and the other months.'}
 
@@ -224,11 +225,11 @@ $$Y_i = \beta_0 + \beta_1\text{wind}_i + \beta_2\text{solar}_i + \beta_3\text{te
 This model does not perform well, moreover, its performance is highly dependent on the month, year and day of the observation. (ADD REFERENCE TO CROSS-VALIDATION RESULTS). This hints at the need to explore the relationship between gross demand and year, as well as refine the relationship between gross demand and "wdayindex" and "monthindex", as simply using a linear relationship for the previous two variables does not seem appropriate.
 
 ## New variables
-In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in figure (ADD REFERENCE) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "is_weekday", defined below:
+In light of the weaknesses of the baseline model, we have created new covariates from the dataset, by appropriate transformations of existing variables, in an attempt to better capture their relationship with gross demand. The relationship displayed in Figure (4) suggests the need to make a distinction between weekends and weekdays. To do so, we created a categorical variable "is_weekday", defined below:
 $$\text{is_weekday}_i = \begin{cases} 1 & \text{if } i\text{ is a weekday} \\ 0 & \text{if } i\text{ is a weekend day}\end{cases}.$$
 Similarly, we created another categorical variable, "is_winter", defined as follows:
 $$\text{is_winter}_i = \begin{cases} 0 & \text{if } i\text{ is in March} \\ 1 & \text{otherwise}\end{cases},$$
-as figure (ADD REFERENCE) shows that gross demand in March differs significantly from any other month. Figure (ADD REFERENCE) indicates that a linear relationship between gross demand and year is not suitable. As a result, we constructed a new variable instead, "year_d" to model the dependence of gross demand on the year, this was defined as follows:
+as Figure (3) shows that gross demand in March differs significantly from any other month. Figure (2) indicates that a linear relationship between gross demand and year is not suitable. As a result, we constructed a new variable instead, "year_d" to model the dependence of gross demand on the year, this was defined as follows:
 $$\text{year}_{d_i} = |\text{year}_i - 2005|.$$
 Finally, to capture the effects of the variability of the temperature in a given day, we defined the variable "daily_var", as displayed below:
 $$\text{daily_var}_i = \widehat{Var}(\text{temp}_i) = \dfrac{1}{23}\sum_{j=1}^{24}(\text{temp}_{i,j} - \overline{\text{temp}_i})^2 .$$
@@ -245,7 +246,7 @@ This information was extracted from the "SCS_hourly_temp" dataset, and $\widehat
 We are now ready to introduce our model, which builds on the baseline model, while incorporating the new variables defined in the previous section, as following:
 $$Y_i = \beta_0 + \beta_1\text{Wind}_i + \beta_2\text{Solar}_i + \beta_3\text{temp}_i + \beta_4\text{is_weekday}_i + \beta_5\text{is_winter}_i + \beta_6\text{year_d}_i + \beta_7\text{TE}_i + \beta_8\text{daily_var}_i + \epsilon_i.$$
 The model was fit using the "lm" built in function, which takes parameters "formula", which specifies the form of the linear model, in our case simply $Y \sim \text{Solar} + \text{Wind} + \text{week_type} + \text{season} + \text{year_d} + \text{Temp} + \text{TE} + \text{daily_var}$, and "data", which specifies which set of observations should be used to fit the model. The function then fits the model by computing the regression coefficients that minimize the value of $R^2$, as explained in the introduction.
-This model performs better than most of the other models we have tested, with the main trade off being its increased complexity. To select this model, we have tested several variations including the use of different variables, or transformations of the variables. Although slightly better results were obtained for some models, for example by implementing a dependency on the cubic root of the temperature, justified by plot (ADD REFERENCE), they were ultimately discarded, as the slight improvement in prediction accuracy was not enough to justify the significant increase in model complexity.
+This model performs better than most of the other models we have tested, with the main trade off being its increased complexity. To select this model, we have tested several variations including the use of different variables, or transformations of the variables. Although slightly better results were obtained for some models, for example by implementing a dependency on the cubic root of the temperature, justified by Figure (5), they were ultimately discarded, as the slight improvement in prediction accuracy was not enough to justify the significant increase in model complexity.
 
 ## Model performance
 ```{r base_cross_validation, echo=FALSE, eval=FALSE}
@@ -257,7 +258,7 @@ M5_cv <- k_fold_cross_validate(Model_M5, df, strat_vars = c("is_weekday", "is_wi
 
 ```
 
-We use the function "k_fold_cross_validation()" to assess our model performance. The function works by splitting our data into k disjoint groups called 'folds'. Crucially because we have categorical variables present, we use stratified k-fold cross validation, which means that we keep the relative frequencies of each category present within each fold. This ensures that no fold is left with only one category level, and so therefore the model may always arrive at a coefficient for the categorical variable.
+We use the function "k_fold_cross_validation()" to assess our model performance. The function works by splitting our data into k disjoint groups called 'folds'. Crucially because we have categorical variables present, we use stratified k-fold cross validation, which means that we keep the relative frequencies of each category present within each fold. This ensures that no fold is left with only one category level, and therefore the model may always arrive at a coefficient for the categorical variable.
 
 We then assess the model's performance via RMSE, $R^2$ and $adj-R^2$ across all remaining $k-1$ folds. This value is then stored, and the process is repeated with the model being refitted on each of the $k$ folds. The average of each of these metrics is computed and returned in the output of the function. 
 
@@ -265,10 +266,10 @@ For the baseline model discussed earlier, we note these key metrics. The overall
 
 Our model, M5, has an overall adjusted $R^2$ of 0.7616418 and a fold-average of 0.7579201.The plot below compares these figures as well as the RMSE of each model. 
 
-```{r compare_metrics, echo=FALSE}
+```{r compare_metrics, echo=FALSE, message=FALSE, fig.align = 'center'}
 
 
-#make a dataframe from the output of the cro
+#make a dataframe from the output of the cross-validation function
 overall_metrics <- data.frame(
   metric = c("RMSE", "R^2", "Adjusted R^2"),
   M0 = c(4824.76, 0.066, 0.060), # add values manually because function output is strange and just 3 values
@@ -415,7 +416,7 @@ We investigated the variation in maximum demand over the winter of 2013/14, with
 The function 'compare_winter' has been written for this task. We begin by selecting the data from the desired winter season. Then, we replace the year column with 2013/14 as appropriate, before redefining all of the year-dependent variables ('year_d, week_type') based upon this. Using the 'predict()' function from base R, we then predict the total demand over this fictional winter season before extracting and returning the maximum value that the model attains.
 
   
-```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: How Maximum Demand is Projected to Vary With Weather Conditions From Previous Years'}
+```{r compare_winter_plot_1, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 5: How maximum demand is projected to vary with weather conditions from previous years'}
 source("code_modular.R")
 
 years <- 1991:2012
@@ -444,7 +445,7 @@ ggplot(data = comparisons_df, aes(x = other_year, y = max_predicted)) +
   theme_minimal()
 ```
 <div style="height: 10px;"></div>
-```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 6: How the Difference Between Projected Maximum Demand and Observed Maximum Demand Varies With Weather Conditions From Previous Years'}
+```{r compare_winter_plot_2, echo=FALSE, message=FALSE, fig.align = 'center', fig.cap = 'Figure 6: how the difference between projected maximum demand and observed maximum demand varies with weather conditions from previous years'}
 # Plot 2: Predicted Difference
 ggplot(data = comparisons_df, aes(x = other_year, y = diff)) +
   geom_point() +
